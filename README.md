@@ -4,7 +4,7 @@ Pull your run data from Strava and Coros, analyze it with rule-based training lo
 
 ## Status
 
-🚧 Early stage — project structure and core modules are still being built out.
+🚧 Early stage — dashboard scaffold is up and running on sample data; live Strava/Coros API integration is next.
 
 ## Goals
 
@@ -13,21 +13,29 @@ Pull your run data from Strava and Coros, analyze it with rule-based training lo
 - **Feedback**: Generate professional-style feedback on individual runs and overall training trends — strengths, red flags (overtraining, pace inconsistency, etc.), and what to focus on next.
 - **Workout generation**: Produce tailored upcoming workouts (easy runs, tempo, intervals, long runs) based on recent training load and goals.
 
-## Planned stack
+## Stack
 
 - **Language**: Python
+- **Dashboard**: Streamlit
 - **Data sources**: Strava API, Coros API (OAuth-based authentication for both)
 - **Analysis**: Custom rule-based engine (no external LLM dependency)
 
 ## Setup
 
-_Coming soon — will include Strava/Coros API credential setup and installation steps once the initial implementation lands._
+```bash
+pip install -r requirements.txt
+cp .env.example .env   # fill in Strava/Coros credentials once you have them
+cd src
+streamlit run app.py
+```
+
+Without credentials in `.env`, the dashboard runs on sample data so you can see it working end to end.
 
 ## Roadmap
 
+- [x] Dashboard scaffold (Streamlit) with sample data
+- [x] Rule-based feedback and workout generation logic
 - [ ] Strava API auth + activity fetch
 - [ ] Coros API auth + activity fetch
 - [ ] Unified data model for runs across both sources
-- [ ] Rule-based run analysis engine
-- [ ] Feedback report generation
-- [ ] Workout plan generation
+- [ ] Deploy dashboard (Streamlit Community Cloud or similar)
