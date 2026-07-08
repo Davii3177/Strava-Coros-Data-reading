@@ -4,7 +4,7 @@ Pull your run data from Strava and Coros, analyze it with rule-based training lo
 
 ## Status
 
-🚧 Early stage — dashboard scaffold is up and running on sample data; live Strava/Coros API integration is next.
+🚧 In progress — dashboard is live with real Strava activity data; Coros integration is next.
 
 ## Goals
 
@@ -31,11 +31,26 @@ streamlit run app.py
 
 Without credentials in `.env`, the dashboard runs on sample data so you can see it working end to end.
 
+### Connecting Strava
+
+1. Register an app at [strava.com/settings/api](https://www.strava.com/settings/api) and set **Authorization Callback Domain** to `localhost`.
+2. Add the app's Client ID and Client Secret to `.env` (`STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`).
+3. Run the local OAuth helper and open the page it prints:
+   ```bash
+   cd src
+   python strava_auth_server.py
+   ```
+4. Click **Connect with Strava**, authorize with activity read access, and it writes `STRAVA_REFRESH_TOKEN` into `.env` for you automatically.
+
+### Connecting Coros
+
+Not yet implemented — `coros_client.py` still returns sample data.
+
 ## Roadmap
 
 - [x] Dashboard scaffold (Streamlit) with sample data
 - [x] Rule-based feedback and workout generation logic
-- [ ] Strava API auth + activity fetch
+- [x] Strava API auth + activity fetch
 - [ ] Coros API auth + activity fetch
 - [ ] Unified data model for runs across both sources
 - [ ] Deploy dashboard (Streamlit Community Cloud or similar)
