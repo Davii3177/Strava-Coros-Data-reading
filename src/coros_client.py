@@ -24,7 +24,7 @@ def fetch_runs(limit: int = 10) -> list[Run]:
 def _sample_runs(limit: int) -> list[Run]:
     today = date.today()
     samples = [
-        Run(today - timedelta(days=2), "coros", 10.0, 52.0, 155, 5.20, 60),
-        Run(today - timedelta(days=6), "coros", 4.2, 19.5, 165, 4.64, 15),
+        Run("coros-sample-0", today - timedelta(days=2), "coros", 10.0, 52.0, 155, 5.20, 60),
+        Run("coros-sample-1", today - timedelta(days=6), "coros", 4.2, 19.5, 165, 4.64, 15),
     ]
     return samples[:limit]

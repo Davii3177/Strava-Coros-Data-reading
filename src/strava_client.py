@@ -60,6 +60,7 @@ def _to_run(activity: dict) -> Run:
     duration_min = activity["moving_time"] / 60
     pace_min_km = duration_min / distance_km if distance_km else 0.0
     return Run(
+        id=str(activity["id"]),
         date=datetime.fromisoformat(activity["start_date_local"].rstrip("Z")).date(),
         source="strava",
         distance_km=round(distance_km, 2),
@@ -73,9 +74,9 @@ def _to_run(activity: dict) -> Run:
 def _sample_runs(limit: int) -> list[Run]:
     today = date.today()
     samples = [
-        Run(today - timedelta(days=1), "strava", 8.05, 42.0, 152, 5.22, 45),
-        Run(today - timedelta(days=3), "strava", 5.0, 24.5, 161, 4.90, 20),
-        Run(today - timedelta(days=5), "strava", 12.1, 68.0, 148, 5.62, 110),
-        Run(today - timedelta(days=8), "strava", 6.5, 31.0, 158, 4.77, 30),
+        Run("strava-sample-0", today - timedelta(days=1), "strava", 8.05, 42.0, 152, 5.22, 45),
+        Run("strava-sample-1", today - timedelta(days=3), "strava", 5.0, 24.5, 161, 4.90, 20),
+        Run("strava-sample-2", today - timedelta(days=5), "strava", 12.1, 68.0, 148, 5.62, 110),
+        Run("strava-sample-3", today - timedelta(days=8), "strava", 6.5, 31.0, 158, 4.77, 30),
     ]
     return samples[:limit]

@@ -18,7 +18,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 PORT = 8000
-REDIRECT_URI = f"http://localhost:{PORT}/callback"
+PUBLIC_CALLBACK_DOMAIN = os.environ.get("STRAVA_PUBLIC_CALLBACK_DOMAIN")
+REDIRECT_URI = (
+    f"https://{PUBLIC_CALLBACK_DOMAIN}/callback"
+    if PUBLIC_CALLBACK_DOMAIN
+    else f"http://localhost:{PORT}/callback"
+)
 SCOPE = "read,activity:read_all"
 ENV_PATH = os.path.join(os.path.dirname(__file__), "..", ".env")
 
@@ -43,9 +48,9 @@ PAGE_STYLE = """
 
 
 def update_env_refresh_token(new_token: str) -> None:
-    with open(ENV_PATH) as f:
+    with open(ENV_PATH, encoding="utf-8") as f:
         lines = f.readlines()
-    with open(ENV_PATH, "w") as f:
+    with open(ENV_PATH, "w", encoding="utf-8") as f:
         for line in lines:
             if line.startswith("STRAVA_REFRESH_TOKEN="):
                 f.write(f"STRAVA_REFRESH_TOKEN={new_token}\n")

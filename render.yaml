@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: strava-coros-dashboard
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --chdir src --bind 0.0.0.0:$PORT app:app
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: APP_PASSWORD
+        sync: false
+      - key: STRAVA_CLIENT_ID
+        sync: false
+      - key: STRAVA_CLIENT_SECRET
+        sync: false
+      - key: STRAVA_REFRESH_TOKEN
+        sync: false
+      - key: COROS_CLIENT_ID
+        sync: false
+      - key: COROS_CLIENT_SECRET
+        sync: false
