@@ -8,15 +8,18 @@ Pull your run data from Strava and Coros, analyze it with rule-based training lo
 
 ## Try it live
 
+**[strava-coros-data-reading.onrender.com](https://strava-coros-data-reading.onrender.com/)** — password-protected, ask the owner for access.
+
+Want your own copy? Click the button below to deploy on [Render](https://render.com)'s free tier (uses the [render.yaml](render.yaml) blueprint in this repo):
+
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Davii3177/Strava-Coros-Data-reading)
 
-Click the button above to deploy your own copy on [Render](https://render.com)'s free tier (uses the [render.yaml](render.yaml) blueprint in this repo). After deploying:
+After deploying:
 
 1. Set the `APP_PASSWORD` environment variable in the Render dashboard — the app refuses to run without it, since this gates the public URL.
 2. Optionally add your `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, and `STRAVA_REFRESH_TOKEN` (see [Connecting Strava](#connecting-strava) below) to see real data instead of the sample set.
-3. Render gives you a public URL like `https://strava-coros-dashboard.onrender.com` — share that link plus the password with whoever should have access.
 
-Note: the free tier uses ephemeral disk, so locally-stored feedback/race entries (`data/*.json`) reset on redeploy or when the service spins down from inactivity.
+Note: the free tier uses ephemeral disk, so locally-stored feedback/race entries (`data/*.json`) reset on redeploy or when the service spins down from inactivity. It also spins down after inactivity, so the first load after a while can take ~30-60 seconds to wake up.
 
 ## Goals
 
