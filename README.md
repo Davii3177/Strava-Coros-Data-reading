@@ -12,6 +12,15 @@ The hosted app is password-protected. Ask the owner for access.
 
 ## Current features
 
+- A prominent **Today's Run** prescription with distance, duration, target, warm-up, cool-down, recovery time, purpose, and a transparent “Why this?” explanation
+- Workout completion states for completed, shortened, modified, or skipped sessions
+- A transparent readiness status comparing the last seven days with the previous four-week weekly average
+- A plan-versus-actual weekly view with missed-session and consecutive-hard-day adjustments
+- Individual run-analysis pages that use available summary data and explicitly label missing splits, cadence, HR drift, and grade-adjusted pace
+- A priority race center with training phase, countdown, target pace, an explainable finish range, pacing guidance, and checklist
+- Shoe inventory, activity assignment, mileage, retirement, replacement-distance progress, and observed pace/soreness associations
+- Recovery symptom trends, guidance-adherence tracking, and an exportable clinician-friendly text summary
+- Calculated personal records and consistency streaks with estimated/official distinctions
 - Unified recent activity view for Strava and Coros data
 - Weekly distance, average pace, heart rate, elevation, and pace-trend visualization
 - Rule-based coaching feedback and seven-day workout suggestions
@@ -102,7 +111,7 @@ Check-ins are stored locally in `data/recovery_checkins.json`.
    python app.py
    ```
 
-The default local address is `http://127.0.0.1:8502/`. Without Strava or Coros credentials, Gaman AI uses sample activities so the dashboard remains usable.
+The default local address is `http://127.0.0.1:8502/`. When neither Strava nor Coros is connected, Gaman AI uses clearly labeled sample activities so the dashboard remains usable. Sample activities are never mixed into a connected user's real metrics.
 
 ## Environment variables
 
@@ -152,6 +161,10 @@ The recovery tests cover ordinary guidance, red-flag escalation, validation, and
 The included `render.yaml` can deploy the Flask app to Render. Configure `APP_PASSWORD` and any API credentials in the Render environment settings.
 
 Render's free filesystem is ephemeral. Saved races, workout feedback, and recovery check-ins in `data/*.json` may reset after redeployment or service replacement. The free service can also take roughly 30-60 seconds to wake after inactivity.
+
+### Current data limitations
+
+The unified activity model currently includes date, source, distance, duration, average heart rate, average pace, and elevation gain. Split-level pace, cadence, HRV, resting heart rate, sleep, and detailed elevation streams are shown as unavailable until their source integrations provide them. Gaman AI does not fabricate these fields. Coros production authentication remains a roadmap item, and the current Coros client uses sample activities.
 
 ## Project status
 

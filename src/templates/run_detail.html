@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Run analysis — Gaman AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}());</script>
+</head>
+<body>
+  <main class="detail-page">
+    <a href="{{ url_for('index') }}#activity-analysis">← Dashboard</a>
+    <p class="eyebrow">ACTIVITY ANALYSIS</p>
+    <h1>{{ analysis.run.date }} · {{ analysis.run.distance_km }} km</h1>
+    <section class="metric-grid">
+      <article class="metric-card"><span>PACE</span><strong>{{ analysis.run.pace_str }}</strong></article>
+      <article class="metric-card"><span>HEART RATE</span><strong>{{ analysis.run.avg_hr if analysis.run.avg_hr else 'Unavailable' }}</strong></article>
+      <article class="metric-card"><span>ELEVATION</span><strong>{{ analysis.run.elevation_gain_m }} m</strong></article>
+    </section>
+    {% if analysis.comparison %}<section class="card"><h2>Similar-run comparison</h2><p>{{ analysis.comparison }}</p></section>{% endif %}
+    <section class="card columns"><div><h2>What went well</h2><ul>{% for line in analysis.went_well %}<li>{{ line }}</li>{% endfor %}</ul></div><div><h2>What to improve</h2><ul>{% for line in analysis.improve %}<li>{{ line }}</li>{% endfor %}</ul></div></section>
+    <section class="card"><h2>Recovery consideration</h2><p>{{ analysis.recovery }}</p></section>
+    <section class="card"><h2>Unavailable from this activity summary</h2><ul>{% for item in analysis.unavailable %}<li>{{ item }}</li>{% endfor %}</ul><p class="caption">These fields are intentionally not estimated or fabricated.</p></section>
+  </main>
+  <script src="{{ url_for('static', filename='theme.js') }}"></script>
+</body>
+</html>

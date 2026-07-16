@@ -57,6 +57,8 @@ class Race:
     date: date
     name: str
     distance_km: float | None = None
+    target_time_min: float | None = None
+    priority: bool = False
 
 
 @dataclass
@@ -76,3 +78,15 @@ class RecoveryCheckin:
     created_at: str
     side: str = "both"
     location_detail: str = ""
+    adherence: str = "not_set"
+
+
+@dataclass
+class Shoe:
+    id: str
+    brand: str
+    model: str
+    nickname: str
+    purchase_date: str
+    replacement_km: float | None
+    retired: bool = False

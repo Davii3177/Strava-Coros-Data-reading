@@ -25,7 +25,13 @@ def _write_raw(raw: dict) -> None:
 
 def load_all() -> list[Race]:
     races = [
-        Race(date=date.fromisoformat(entry["date"]), name=entry["name"], distance_km=entry.get("distance_km"))
+        Race(
+            date=date.fromisoformat(entry["date"]),
+            name=entry["name"],
+            distance_km=entry.get("distance_km"),
+            target_time_min=entry.get("target_time_min"),
+            priority=entry.get("priority", False),
+        )
         for entry in _load_raw().values()
     ]
     races.sort(key=lambda r: r.date)

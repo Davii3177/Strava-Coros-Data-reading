@@ -26,3 +26,18 @@ def save(checkin: RecoveryCheckin) -> None:
     records.insert(0, checkin)
     with open(RECOVERY_PATH, "w", encoding="utf-8") as file:
         json.dump([asdict(record) for record in records], file, indent=2)
+
+
+def update_adherence(checkin_id: str, adherence: str) -> bool:
+    records = load_all()
+    found = False
+    for record in records:
+        if record.id == checkin_id:
+            record.adherence = adherence
+            found = True
+            break
+    if found:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(RECOVERY_PATH, "w", encoding="utf-8") as file:
+            json.dump([asdict(record) for record in records], file, indent=2)
+    return found

@@ -7,14 +7,22 @@ from datetime import date, datetime, timedelta, timezone
 
 import plotly.graph_objects as go
 from dotenv import load_dotenv
-from flask import Flask, abort, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, Response, abort, jsonify, redirect, render_template, request, session, url_for
 
 import analysis
 import coros_client
 import feedback_store
+import personal_records
+import planning
 import race_store
+import race_prediction
 import recovery_store
+import recovery_trends
+import run_analysis
+import shoe_store
 import strava_client
+import training_load
+import training_store
 import workout_model
 from models import Feedback, Race, RecoveryCheckin, Run, format_pace
 
@@ -67,6 +75,8 @@ def submit_feedback(run_id):
         motivation = int(request.form["motivation"])
     except (KeyError, ValueError):
         abort(400)
+    if not all(1 <= value <= 5 for value in (difficulty, soreness, motivation)):
+        abort(400)
 
     feedback_store.save(
         Feedback(
@@ -82,7 +92,28 @@ def submit_feedback(run_id):
             submitted_at=datetime.now(timezone.utc).isoformat(),
         )
     )
-    return redirect(url_for("index"))
+    return redirect(url_for("index") + "#feedback")
+
+
+@app.route("/feedback/<run_id>/delete", methods=["POST"])
+def delete_feedback(run_id):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    feedback_store.delete(run_id)
+    return redirect(url_for("index") + "#feedback")
+
+
+@app.route("/feedback/<run_id>/dismiss", methods=["POST"])
+def dismiss_feedback(run_id):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+
+    run = next((item for item in _all_runs() if item.id == run_id), None)
+    if run is None:
+        abort(404)
+    if run_id not in feedback_store.load_all():
+        feedback_store.dismiss(run_id)
+    return redirect(url_for("index") + "#feedback")
 
 
 @app.route("/races", methods=["POST"])
@@ -104,8 +135,19 @@ def add_race():
         distance_km = float(distance_raw) if distance_raw else None
     except ValueError:
         abort(400)
+    if distance_km is not None and not 0 < distance_km <= 500:
+        abort(400)
 
-    race_store.save(Race(date=race_date, name=name, distance_km=distance_km))
+    target_raw = request.form.get("target_time_min", "").strip()
+    try:
+        target_time_min = float(target_raw) if target_raw else None
+    except ValueError:
+        abort(400)
+    if target_time_min is not None and not 0 < target_time_min <= 10000:
+        abort(400)
+    priority = request.form.get("priority") == "on"
+
+    race_store.save(Race(date=race_date, name=name, distance_km=distance_km, target_time_min=target_time_min, priority=priority))
     return redirect(url_for("index"))
 
 
@@ -117,8 +159,121 @@ def delete_race(date_str):
     return redirect(url_for("index"))
 
 
+@app.route("/training/today", methods=["POST"])
+def update_today_status():
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    status = request.form.get("status", "")
+    if status not in {"complete", "skipped", "shortened", "modified"}:
+        abort(400)
+    distance_raw = request.form.get("actual_distance_km", "").strip()
+    try:
+        distance_km = float(distance_raw) if distance_raw else None
+    except ValueError:
+        abort(400)
+    if distance_km is not None and not 0 <= distance_km <= 500:
+        abort(400)
+    training_store.save(date.today().isoformat(), status, distance_km, request.form.get("note", "").strip())
+    return redirect(url_for("index") + "#daily")
+
+
+@app.route("/shoes", methods=["POST"])
+def add_shoe():
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    brand = request.form.get("brand", "").strip()
+    model = request.form.get("model", "").strip()
+    nickname = request.form.get("nickname", "").strip()
+    purchase_date = request.form.get("purchase_date", "").strip()
+    if not brand or not model or len(brand) > 80 or len(model) > 80 or len(nickname) > 80:
+        abort(400)
+    if purchase_date:
+        try:
+            date.fromisoformat(purchase_date)
+        except ValueError:
+            abort(400)
+    replacement_raw = request.form.get("replacement_km", "").strip()
+    try:
+        replacement_km = float(replacement_raw) if replacement_raw else None
+    except ValueError:
+        abort(400)
+    if replacement_km is not None and not 1 <= replacement_km <= 5000:
+        abort(400)
+    shoe_store.add(brand, model, nickname, purchase_date, replacement_km)
+    return redirect(url_for("index") + "#shoes")
+
+
+@app.route("/shoes/<shoe_id>/retire", methods=["POST"])
+def retire_shoe(shoe_id):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    if not shoe_store.retire(shoe_id):
+        abort(404)
+    return redirect(url_for("index") + "#shoes")
+
+
+@app.route("/runs/<run_id>/shoe", methods=["POST"])
+def assign_run_shoe(run_id):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    if not any(run.id == run_id for run in _all_runs()):
+        abort(404)
+    shoe_id = request.form.get("shoe_id", "")
+    if shoe_id not in {shoe.id for shoe in shoe_store.load_all()}:
+        abort(400)
+    shoe_store.assign(run_id, shoe_id)
+    return redirect(url_for("index") + "#shoes")
+
+
+@app.route("/runs/<run_id>")
+def run_detail(run_id):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    runs = _all_runs()
+    run = next((item for item in runs if item.id == run_id), None)
+    if not run:
+        abort(404)
+    return render_template("run_detail.html", analysis=run_analysis.analyze(run, runs))
+
+
+@app.route("/recovery/<checkin_id>/adherence", methods=["POST"])
+def recovery_adherence(checkin_id):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    adherence = request.form.get("adherence", "")
+    if adherence not in {"followed", "partial", "not_followed"}:
+        abort(400)
+    if not recovery_store.update_adherence(checkin_id, adherence):
+        abort(404)
+    return redirect(url_for("index") + "#recovery-timeline")
+
+
+@app.route("/recovery/export")
+def export_recovery():
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    lines = ["Gaman AI recovery check-in summary", "Educational history only; not a diagnosis or treatment record.", ""]
+    for item in recovery_store.load_all():
+        lines.append(f"{item.created_at[:10]} | {', '.join(item.body_areas)} | {item.side} | pain {item.pain_level}/10 | trend action: {item.adherence}")
+        if item.location_detail:
+            lines.append(f"Exact location: {item.location_detail}")
+        lines.append(f"Notes: {item.notes or 'None'}")
+        lines.append("")
+    return Response("\n".join(lines), mimetype="text/plain", headers={"Content-Disposition": "attachment; filename=gaman-recovery-summary.txt"})
+
+
 def _all_runs() -> list[Run]:
-    runs = strava_client.fetch_runs() + coros_client.fetch_runs()
+    strava_configured = strava_client.is_configured()
+    coros_configured = coros_client.is_configured()
+    if not strava_configured and not coros_configured:
+        runs = strava_client.fetch_runs(limit=50) + coros_client.fetch_runs(limit=50)
+    else:
+        runs = strava_client.fetch_runs(limit=50) if strava_configured else []
+        if coros_configured:
+            try:
+                runs += coros_client.fetch_runs(limit=50)
+            except NotImplementedError:
+                pass
     runs.sort(key=lambda r: r.date, reverse=True)
     return runs
 
@@ -315,10 +470,28 @@ def _build_calendar(year: int, month: int, runs: list[Run], races: list[Race]) -
     return weeks
 
 
+def _feedback_runs(
+    runs: list[Run],
+    feedback_by_run: dict[str, Feedback],
+    dismissed: set[str],
+    today: date | None = None,
+) -> list[Run]:
+    """Keep saved feedback visible and expire unanswered prompts after seven days."""
+    today = today or date.today()
+    cutoff = today - timedelta(days=7)
+    return [
+        run
+        for run in runs
+        if run.id in feedback_by_run or (run.id not in dismissed and run.date >= cutoff)
+    ]
+
+
 def _dashboard_context() -> dict:
     runs = _all_runs()
     feedback_by_run = feedback_store.load_all()
     races = race_store.load_all()
+    checkins = recovery_store.load_all()
+    readiness = training_load.calculate(runs, feedback_by_run, checkins)
 
     today = date.today()
     try:
@@ -337,6 +510,8 @@ def _dashboard_context() -> dict:
         "coros_connected": coros_client.is_configured(),
         "runs": runs,
         "feedback_by_run": feedback_by_run,
+        "feedback_runs": _feedback_runs(runs, feedback_by_run, feedback_store.load_dismissed(), today),
+        "feedback_expiry_days": 7,
         "races": races,
         "calendar_weeks": _build_calendar(year, month, runs, races),
         "month_label": first_of_month.strftime("%B %Y"),
@@ -344,8 +519,18 @@ def _dashboard_context() -> dict:
         "prev_month": prev_month.month,
         "next_year": next_month.year,
         "next_month": next_month.month,
-        "recovery_checkins": recovery_store.load_all()[:5],
+        "recovery_checkins": checkins[:5],
         "recovery_context": _training_context(runs),
+        "readiness": readiness,
+        "today_run": planning.todays_run(runs, readiness, races),
+        "plan_actual": planning.plan_vs_actual(runs, races, training_store.load_all(), feedback_by_run=feedback_by_run),
+        "today_saved": training_store.load_all().get(today.isoformat()),
+        "race_goal": race_prediction.goal_center(races, runs),
+        "personal_records": personal_records.calculate(runs),
+        "recovery_trends": recovery_trends.summarize(checkins),
+        "shoes": shoe_store.with_mileage(runs, feedback_by_run),
+        "shoe_assignments": shoe_store.assignments(),
+        "sample_data": bool(runs) and all("sample" in run.id for run in runs),
     }
 
     if not runs:
