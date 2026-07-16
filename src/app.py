@@ -1,20 +1,22 @@
 import calendar as pycalendar
 import hmac
+import json
 import os
 import secrets
 from datetime import date, datetime, timedelta, timezone
 
 import plotly.graph_objects as go
 from dotenv import load_dotenv
-from flask import Flask, abort, redirect, render_template, request, session, url_for
+from flask import Flask, abort, jsonify, redirect, render_template, request, session, url_for
 
 import analysis
 import coros_client
 import feedback_store
 import race_store
+import recovery_store
 import strava_client
 import workout_model
-from models import Feedback, Race, Run, format_pace
+from models import Feedback, Race, RecoveryCheckin, Run, format_pace
 
 load_dotenv(override=True)
 
@@ -126,6 +128,133 @@ def _all_runs() -> list[Run]:
 # the UI accent color so chart identity never gets confused with brand chrome.
 SOURCE_COLORS = {"strava": "#3987e5", "coros": "#d95926"}
 
+BODY_AREAS = {
+    "head_face", "jaw", "neck", "collarbones", "shoulders", "biceps_triceps",
+    "elbows", "forearms", "wrists_hands", "chest", "ribs", "abdomen",
+    "upper_back", "mid_back", "lower_back", "sacrum_si", "hips", "hip_flexors",
+    "glutes", "groin_adductors", "quads", "inner_thighs", "outer_thighs",
+    "hamstrings", "kneecap", "inner_knee", "outer_knee", "shins", "calves",
+    "achilles", "ankles", "heels", "feet", "toes",
+    # Accept broad-region values from existing cached versions of the UI.
+    "shoulders", "upper_back", "lower_back", "chest", "elbows", "wrists_hands",
+    "hips", "glutes", "groin", "quads", "hamstrings", "knees", "shins", "calves",
+    "ankles", "feet",
+}
+SENSATIONS = {"sharp", "dull", "tight", "sore", "burning", "numb", "tingling"}
+TRIGGERS = {"running", "walking", "rest", "movement"}
+ONSET_OPTIONS = {"gradual", "sudden", "after_run"}
+BODY_SIDES = {"left", "right", "both", "center"}
+RED_FLAG_TERMS = {
+    "unable to bear weight", "cannot bear weight", "deformity", "chest pain",
+    "trouble breathing", "shortness of breath", "fever", "numbness", "weakness",
+    "bladder", "bowel", "trauma", "traumatic swelling",
+}
+AI_RATE_LIMIT = 5
+AI_RATE_WINDOW_SECONDS = 3600
+
+
+def _training_context(runs: list[Run]) -> dict:
+    recent = runs[:7]
+    prior = runs[7:14]
+    recent_distance = round(sum(run.distance_km for run in recent), 1)
+    prior_distance = round(sum(run.distance_km for run in prior), 1)
+    return {
+        "recent_runs": len(recent),
+        "recent_distance_km": recent_distance,
+        "prior_distance_km": prior_distance,
+        "load_change_percent": round(((recent_distance - prior_distance) / prior_distance) * 100, 1) if prior_distance else None,
+        "recent_elevation_m": sum(run.elevation_gain_m for run in recent),
+        "recent_average_pace": format_pace(analysis.avg_pace_min_km(recent)) if recent else None,
+    }
+
+
+def _has_red_flags(payload: dict) -> bool:
+    notes = str(payload.get("notes", "")).lower()
+    severe_pain = payload.get("pain_level", 0) >= 9
+    serious_sensation = bool({"numb", "tingling"} & set(payload.get("sensation", [])))
+    return severe_pain or serious_sensation or any(term in notes for term in RED_FLAG_TERMS)
+
+
+def _safe_guidance(payload: dict, context: dict, urgent: bool) -> str:
+    areas = ", ".join(area.replace("_", " ") for area in payload["body_areas"])
+    if urgent:
+        return (
+            "Urgent safety check: your answers may indicate a symptom that needs prompt in-person "
+            "medical assessment. Stop running for now. Seek urgent care or emergency help now for chest "
+            "pain, breathing trouble, new weakness/numbness, loss of bladder or bowel control, deformity, "
+            "or inability to bear weight. This app cannot assess an injury remotely."
+        )
+    load_note = ""
+    if context.get("load_change_percent") is not None:
+        load_note = f" Your recent logged distance changed {context['load_change_percent']:+.0f}% versus the prior set of runs."
+    return (
+        f"For {areas}, reduce or pause painful running for 48–72 hours and keep all movement below pain-provoking levels."
+        f" Consider gentle, comfortable mobility, sleep, hydration, and low-impact cross-training only if it is pain-free.{load_note} "
+        "Avoid speed work, hills, and pushing through sharp or worsening pain. Resume gradually only after daily activities "
+        "and easy movement are comfortable; a licensed clinician or physical therapist can provide an individual assessment. "
+        "This is educational information, not a diagnosis, treatment plan, or emergency care."
+    )
+
+
+def _ai_guidance(payload: dict, context: dict) -> str | None:
+    """Use an optional OpenAI-compatible chat endpoint; failure always falls back safely."""
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        return None
+    prompt = (
+        "Give concise, conservative educational running-recovery guidance. Never diagnose, prescribe, or claim certainty. "
+        "Include possible common causes, training-load observations, recovery steps, a gradual return idea, avoid-for-now items, "
+        "red flags, and a medical disclaimer. Data: " + json.dumps({"checkin": payload, "training": context})
+    )
+    try:
+        import requests
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={"model": os.environ.get("OPENAI_MODEL", "gpt-4o-mini"), "messages": [{"role": "system", "content": "You are a cautious running-recovery education assistant."}, {"role": "user", "content": prompt}], "temperature": 0.25, "max_tokens": 600},
+            timeout=20,
+        )
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"].strip()
+    except (requests.RequestException, KeyError, IndexError, ValueError):
+        return None
+
+
+@app.route("/api/recovery/checkins", methods=["POST"])
+def create_recovery_checkin():
+    if not session.get("authenticated"):
+        return jsonify(error="Authentication required."), 401
+    timestamps = [stamp for stamp in session.get("recovery_requests", []) if datetime.now(timezone.utc).timestamp() - stamp < AI_RATE_WINDOW_SECONDS]
+    if len(timestamps) >= AI_RATE_LIMIT:
+        return jsonify(error="Recovery guidance is limited to 5 requests per hour. Please try again later."), 429
+    payload = request.get_json(silent=True) or {}
+    body_areas = payload.get("body_areas", [])
+    sensation = payload.get("sensation", [])
+    triggers = payload.get("triggers", [])
+    try:
+        pain_level = int(payload.get("pain_level"))
+    except (TypeError, ValueError):
+        return jsonify(error="Choose a pain level from 1 to 10."), 400
+    if not body_areas or not set(body_areas).issubset(BODY_AREAS) or not 1 <= pain_level <= 10:
+        return jsonify(error="Select at least one valid body area and a pain level from 1 to 10."), 400
+    if (
+        not set(sensation).issubset(SENSATIONS)
+        or not set(triggers).issubset(TRIGGERS)
+        or payload.get("onset", "gradual") not in ONSET_OPTIONS
+        or payload.get("side", "both") not in BODY_SIDES
+    ):
+        return jsonify(error="One or more symptom fields are invalid."), 400
+    payload = {"body_areas": body_areas, "pain_level": pain_level, "onset": str(payload.get("onset", "gradual"))[:20], "sensation": sensation, "triggers": triggers, "side": str(payload.get("side", "both")), "location_detail": str(payload.get("location_detail", "")).strip()[:240], "notes": str(payload.get("notes", "")).strip()[:1000]}
+    context = _training_context(_all_runs())
+    urgent = _has_red_flags(payload)
+    guidance = _safe_guidance(payload, context, urgent)
+    if not urgent:
+        guidance = _ai_guidance(payload, context) or guidance
+    recovery_store.save(RecoveryCheckin(id=secrets.token_urlsafe(10), training_context=context, guidance=guidance, urgent=urgent, created_at=datetime.now(timezone.utc).isoformat(), **payload))
+    timestamps.append(datetime.now(timezone.utc).timestamp())
+    session["recovery_requests"] = timestamps
+    return jsonify(guidance=guidance, urgent=urgent, training_context=context)
+
 
 def _pace_chart_html(runs: list[Run]) -> str:
     by_source: dict[str, list[Run]] = {}
@@ -135,7 +264,7 @@ def _pace_chart_html(runs: list[Run]) -> str:
     fig = go.Figure()
     for source, source_runs in by_source.items():
         ordered = sorted(source_runs, key=lambda r: r.date)
-        color = SOURCE_COLORS.get(source, "#e0207c")
+        color = SOURCE_COLORS.get(source, "#42f4e8")
         fig.add_trace(
             go.Scatter(
                 x=[r.date.isoformat() for r in ordered],
@@ -215,6 +344,8 @@ def _dashboard_context() -> dict:
         "prev_month": prev_month.month,
         "next_year": next_month.year,
         "next_month": next_month.month,
+        "recovery_checkins": recovery_store.load_all()[:5],
+        "recovery_context": _training_context(runs),
     }
 
     if not runs:

@@ -57,3 +57,22 @@ class Race:
     date: date
     name: str
     distance_km: float | None = None
+
+
+@dataclass
+class RecoveryCheckin:
+    """A body-pain check-in retained locally alongside workout feedback."""
+
+    id: str
+    body_areas: list[str]
+    pain_level: int
+    onset: str
+    sensation: list[str]
+    triggers: list[str]
+    notes: str
+    training_context: dict
+    guidance: str
+    urgent: bool
+    created_at: str
+    side: str = "both"
+    location_detail: str = ""

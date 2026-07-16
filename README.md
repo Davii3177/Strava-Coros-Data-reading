@@ -46,6 +46,16 @@ python app.py
 
 Without Strava/Coros credentials in `.env`, the dashboard runs on sample data so you can see it working end to end. `APP_PASSWORD` is required — the app refuses to start authentication without it.
 
+### Body & Recovery
+
+The **Body & Recovery** panel lets you select one or more areas on the front/back body diagram, describe symptoms and triggers, and save a private check-in. It uses recent loaded running data as context and always provides conservative, non-diagnostic information.
+
+- Red-flag symptoms, including chest pain, breathing trouble, severe pain, new numbness/weakness, deformity, or inability to bear weight, receive an urgent-care message instead of ordinary guidance.
+- Check-ins are stored in `data/recovery_checkins.json`. On Render's free tier this local data is ephemeral, like feedback and race entries.
+- The built-in guidance needs no external AI service. To optionally enable server-side AI-expanded educational guidance, set `OPENAI_API_KEY` and optionally `OPENAI_MODEL` in `.env` or Render's environment settings. Never place these values in client-side code.
+
+This feature is educational only; it does not diagnose injuries or replace a clinician, physical therapist, athletic trainer, or emergency service.
+
 ### Connecting Strava
 
 1. Register an app at [strava.com/settings/api](https://www.strava.com/settings/api) and set **Authorization Callback Domain** to `localhost`.

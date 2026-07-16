@@ -3,27 +3,43 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Run Coach — Login</title>
+  <title>Gaman AI — Training console</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <script>
-    (function () {
-      var saved = localStorage.getItem("theme");
-      if (saved) document.documentElement.setAttribute("data-theme", saved);
-    })();
-  </script>
+  <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.dataset.theme=t}());</script>
 </head>
-<body class="login-body">
-  <button id="theme-toggle" class="theme-toggle" type="button">Theme</button>
-  <form method="post" class="login-card">
-    <p class="login-kicker">Run Coach</p>
-    <h1>Enter the club</h1>
-    {% if error %}<p class="error">{{ error }}</p>{% endif %}
-    <input type="password" name="password" placeholder="Password" autofocus>
-    <button type="submit">Enter</button>
-  </form>
+<body class="landing-body">
+  <button id="theme-toggle" class="landing-mode" type="button">Toggle mode</button>
+  <main class="landing-shell unified-landing">
+    <section class="landing-hero">
+      <a class="brand landing-brand" href="/">
+        <span class="brand-orb">GA</span>
+        <span><small>GAMAN // AI</small><strong>Training Console</strong></span>
+      </a>
+      <div class="landing-content">
+        <p class="eyebrow">STRAVA + COROS // ONE CLEAR SIGNAL</p>
+        <h1>Make every<br><em>mile count</em></h1>
+        <p class="landing-copy">A personal running dashboard for understanding your pace, training load, race goals, and recovery — without the clutter.</p>
+        <div class="landing-points"><span>LIVE ACTIVITY DATA</span><span>SMART TRAINING LOGIC</span><span>BODY &amp; RECOVERY</span></div>
+        <form method="post" class="compact-login">
+          <div class="compact-login-label"><small>PRIVATE ACCESS</small><strong>Enter the club</strong></div>
+          {% if error %}<p class="error">{{ error }}</p>{% endif %}
+          <label class="sr-only" for="password">Password</label>
+          <input id="password" type="password" name="password" placeholder="Password" autofocus required>
+          <button type="submit" aria-label="Open dashboard">Enter <span>↗</span></button>
+        </form>
+      </div>
+    </section>
+    <footer class="landing-footer">
+      <span>GAMAN AI · BUILT BY DAVID</span>
+      <nav aria-label="Contact links">
+        <a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub ↗</a>
+        <a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu ↗</a>
+      </nav>
+    </footer>
+  </main>
   <script src="{{ url_for('static', filename='theme.js') }}"></script>
 </body>
 </html>

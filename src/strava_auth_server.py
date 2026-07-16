@@ -64,7 +64,7 @@ class Handler(BaseHTTPRequestHandler):
 
         if parsed.path == "/":
             self._respond(200, PAGE_STYLE.format(body=f"""
-                <h1>Run Coach</h1>
+                <h1>Gaman AI</h1>
                 <p>Connect your Strava account to pull in real activity data.</p>
                 <a href="{AUTHORIZE_URL}"
                    style="background:#fc4c02;color:white;padding:12px 24px;
