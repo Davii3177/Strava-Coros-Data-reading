@@ -36,7 +36,9 @@ The hosted app is password-protected. Ask the owner for access.
 
 The interface was redesigned and renamed from **Run Coach** to **Gaman AI**.
 
-- The dashboard prioritizes the decisions a runner needs first: **Today's Run**, **Readiness & Recovery**, and the **Weekly Plan**. Activity search stays compact and immediately available; race tools, records, trends, gear, history, and deeper analysis use progressive disclosure without losing functionality.
+- The authenticated product is organized into five focused areas: **Overview**, **Training**, **Activities**, **Body & Recovery**, and **Profile**. Every previous tool remains available, but unrelated workflows no longer compete on one long page.
+- **Overview** prioritizes Today's Run, readiness, weekly mileage, and the recommendation evidence. **Training** contains the weekly plan, race goal, records, calendar, pace trend, suggested sessions, and race management.
+- **Activities** contains searchable run details, the complete activity table, saved feedback, dismissal, deletion, and seven-day prompt expiry. **Body & Recovery** owns the anatomy selector, symptom form, guidance, history, adherence, and export. **Profile** contains connection status, shoes, assignments, privacy, and contact information.
 - Real running data—including pace, distance, heart rate, elevation, shoes, race countdowns, and recovery trends—provides the visual focus.
 - Recommendations use short, specific language and show the data behind the suggestion. Measured facts, estimates, and coaching guidance remain clearly distinguished.
 - An intentionally restrained palette uses white and warm-grey surfaces, charcoal text, and a small amount of purple for emphasis.
@@ -44,11 +46,11 @@ The interface was redesigned and renamed from **Run Coach** to **Gaman AI**.
 - Original cinematic trail-running imagery gives the product a distinctive identity without distracting from the data.
 - The responsive light theme retains readable contrast, keyboard focus styles, reduced-motion support, and clear status colors.
 - Consistent spacing, borders, and icons keep the expressive visual language practical. Motion is limited to useful feedback such as loading, progress, and state changes.
-- Responsive navigation keeps common destinations easy to reach and groups less-frequent features under **More tools**.
+- Desktop navigation uses a stable product sidebar. Mobile navigation uses a compact five-destination bottom bar with a visible active state.
 - Search, compact views, and collapsible sections keep detailed tools available without overwhelming the main dashboard. Activity Details shows four runs and Run Feedback shows three prompts by default; both support search and Show all/less controls, while feedback deletion, dismissal, and seven-day prompt expiry remain intact.
 - The landing page uses a concise white header and full-bleed cinematic imagery, with one headline, one supporting sentence, and a single Open Dashboard button that reveals a compact password dialog.
-- The landing About experience uses a concise introduction, three benefits, and one Run → Reflect → Adapt → Move animation. Native expandable disclosures preserve the exact workout-model, recovery-model, safety, fallback, and limitation details without placing all technical copy on screen at once.
-- The authenticated dashboard carries the same editorial system into a light top navigation, a dominant Today card paired with readiness, a visible weekly plan, neutral data surfaces, restrained purple accents, and simplified responsive controls.
+- The landing page contains one concise hero, three benefits, a short workflow preview, safety boundaries, a detailed About section, and a footer. The complete technical explanation now lives at `/how-it-works`.
+- The authenticated product shares one editorial system: white and warm-gray surfaces, charcoal text, restrained purple interaction states, consistent 14px cards, system-sans controls, and serif only for major page titles.
 - Landing, About, dashboard, run-detail, and recovery interfaces share the same responsive light system, visible keyboard focus, and reduced-motion behavior.
 
 ### Image assets and visual direction
@@ -58,6 +60,16 @@ The following project-local assets are original images generated for Gaman AI us
 - `gaman-mountain-road-hero.jpg`
 - `gaman-mountain-valley.jpg`
 - `gaman-ridge-runner.jpg`
+- `gaman-0716-poster.jpg` (poster extracted from the owner-supplied hero video)
+
+### Hero video
+
+The owner-supplied `0716.mp4` is represented by two local, silent, 16-second 1080p web variants:
+
+- `src/static/videos/gaman-0716-hero.webm`
+- `src/static/videos/gaman-0716-hero.mp4`
+
+The WebM source is preferred where supported, MP4 is the compatibility fallback, and the poster is used for reduced-motion preferences, small screens, and data-saver connections. Both video files are local, so the homepage has no third-party media dependency.
 
 [WallpaperSafari's Vintage Aesthetic Landscape collection](https://wallpapersafari.com/vintage-aesthetic-landscape-wallpapers/) was used only as visual direction. No WallpaperSafari-hosted image is integrated into the project because its [copyright policy](https://wallpapersafari.com/page/copyright-policy/) requires permission from the relevant creator and its [terms of service](https://wallpapersafari.com/page/terms-of-service/) prohibit integrating hosted files without express written permission.
 

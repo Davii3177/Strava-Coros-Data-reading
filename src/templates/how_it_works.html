@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>How Gaman AI works</title><meta name="description" content="The data, calculations, models, and safety boundaries behind Gaman AI guidance."><link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='editorial-20260716') }}"></head>
+<body class="method-body">
+  <a class="skip-link" href="#method-content">Skip to content</a>
+  <header class="method-header"><a class="landing-wordmark" href="{{ url_for('index') }}">Gaman AI</a><a href="{{ url_for('index') }}">Back to Gaman AI</a></header>
+  <main class="method-page" id="method-content">
+    <header class="method-hero"><p class="section-kicker">How it works</p><h1>Four kinds of information. Four clearly defined jobs.</h1><p>Gaman AI separates facts, calculations, statistical estimates, and optional language-model guidance so you can understand where every recommendation comes from.</p></header>
+    <section class="method-grid">
+      <article><span>01 / Direct activity data</span><h2>What your sources measured</h2><p>Distance, duration, average pace, heart rate, elevation, date, and source are displayed as supplied. Missing fields remain unavailable.</p></article>
+      <article><span>02 / Rule-based calculations</span><h2>Transparent training logic</h2><p>Weekly mileage, recent-versus-baseline load, race timing, tapering, and workout adjustments use deterministic rules that can be explained in plain language.</p></article>
+      <article><span>03 / Statistical model</span><h2>Feedback-informed difficulty</h2><p>After at least five rated runs, an inspectable linear regression uses distance, pace, elevation, and your feedback to estimate workout difficulty. Sparse data falls back safely to rules.</p></article>
+      <article><span>04 / Optional language model</span><h2>Expanded recovery education</h2><p>When configured server-side, a language model can expand conservative recovery guidance. It does not control training calculations, diagnose injury, prescribe medication, or replace a clinician.</p></article>
+    </section>
+    <section class="method-safety"><div><p class="section-kicker">Safety gate</p><h2>Urgent symptoms bypass ordinary guidance.</h2></div><p>Chest pain, breathing trouble, severe pain, new numbness or weakness, deformity, or inability to bear weight triggers a prominent recommendation for prompt in-person care. If the optional service is unavailable, built-in conservative guidance remains available.</p></section>
+    <section class="method-limits"><h2>Current limits</h2><ul><li>No diagnosis or emergency care</li><li>No fabricated cadence, sleep, HRV, splits, or grade-adjusted pace</li><li>No confidence interval when the data cannot support one</li><li>Coros production authentication remains a roadmap item</li><li>JSON storage is local and not a durable production database</li></ul></section>
+  </main>
+  <footer class="landing-footer"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a></footer>
+</body>
+</html>

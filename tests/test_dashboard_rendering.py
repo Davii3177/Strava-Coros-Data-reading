@@ -20,6 +20,8 @@ class MarkupProbe(HTMLParser):
         self.scripts = []
         self.stylesheets = []
         self.images = []
+        self.videos = []
+        self.video_sources = []
         self.controls = []
         self.classes = set()
         self.data_attributes = set()
@@ -50,6 +52,10 @@ class MarkupProbe(HTMLParser):
             self.stylesheets.append(attributes["href"])
         elif tag == "img":
             self.images.append(attributes)
+        elif tag == "video":
+            self.videos.append(attributes)
+        elif tag == "source":
+            self.video_sources.append(attributes)
         elif tag in {"button", "input", "select", "textarea"}:
             self.controls.append((tag, attributes))
 
@@ -210,6 +216,29 @@ class DashboardRenderingContractTests(unittest.TestCase):
             self.assertGreater(len(asset.data), 0)
             asset.close()
 
+    def assert_landing_video(self, probe):
+        self.assertEqual(len(probe.videos), 1)
+        video = probe.videos[0]
+        for attribute in ("autoplay", "muted", "loop", "playsinline"):
+            self.assertIn(attribute, video)
+        self.assertEqual(video.get("aria-hidden"), "true")
+        self.assertEqual(
+            video.get("poster"), "/static/images/gaman-0716-poster.jpg"
+        )
+        self.assertEqual(
+            probe.video_sources,
+            [
+                {"src": "/static/videos/gaman-0716-hero.webm", "type": "video/webm"},
+                {"src": "/static/videos/gaman-0716-hero.mp4", "type": "video/mp4"},
+            ],
+        )
+        for source in probe.video_sources:
+            asset = self.client.get(source["src"])
+            self.assertEqual(asset.status_code, 200)
+            self.assertTrue(asset.mimetype.startswith("video/"))
+            self.assertGreater(len(asset.data), 0)
+            asset.close()
+
     def test_authenticated_dashboard_renders_sample_runs(self):
         self.authenticate()
 
@@ -218,23 +247,20 @@ class DashboardRenderingContractTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.mimetype, "text/html")
-        self.assertIn("8.2 km", probe.text)
-        self.assertIn("5.0 km", probe.text)
-        self.assertIn("Sample 10K", probe.text)
-        run_links = {link.get("href") for link in probe.links}
-        self.assertIn("/runs/sample-strava-render", run_links)
-        self.assertIn("/runs/sample-coros-render", run_links)
+        self.assertIn("Today's run", probe.text)
+        self.assertIn("13.2 km", probe.text)
+        self.assertIn("Ready to train", probe.text)
+        product_links = {link.get("href") for link in probe.links}
+        self.assertTrue({"/training", "/activities", "/recovery", "/profile"}.issubset(product_links))
         self.assertNotIn("password", probe.elements_by_id)
-        self.assert_local_images(
-            probe,
-            {"/static/images/gaman-mountain-valley.jpg"},
-        )
+        self.assert_local_images(probe, set())
 
     def test_dashboard_preserves_sections_forms_hooks_and_scripts(self):
         self.authenticate()
 
-        response = self.client.get("/")
-        probe = parse(response)
+        routes = ["/", "/training", "/activities", "/recovery", "/profile"]
+        probes = [parse(self.client.get(route)) for route in routes]
+        element_ids = set().union(*(set(probe.elements_by_id) for probe in probes))
 
         required_ids = {
             "daily",
@@ -260,8 +286,8 @@ class DashboardRenderingContractTests(unittest.TestCase):
             "guidance-result",
         }
         self.assertTrue(
-            required_ids.issubset(probe.elements_by_id),
-            f"Missing required IDs: {sorted(required_ids - probe.elements_by_id.keys())}",
+            required_ids.issubset(element_ids),
+            f"Missing required IDs: {sorted(required_ids - element_ids)}",
         )
 
         required_hooks = {
@@ -276,12 +302,11 @@ class DashboardRenderingContractTests(unittest.TestCase):
             "data-search",
             "data-area",
         }
-        self.assertTrue(
-            required_hooks.issubset(probe.data_attributes),
-            f"Missing data hooks: {sorted(required_hooks - probe.data_attributes)}",
-        )
+        data_attributes = set().union(*(probe.data_attributes for probe in probes))
+        required_hooks -= {"data-expand-all", "data-compact-all"}
+        self.assertTrue(required_hooks.issubset(data_attributes), f"Missing data hooks: {sorted(required_hooks - data_attributes)}")
 
-        form_actions = {form.get("action") for form in probe.forms}
+        form_actions = {form.get("action") for probe in probes for form in probe.forms}
         required_actions = {
             "/training/today",
             "/races",
@@ -300,11 +325,12 @@ class DashboardRenderingContractTests(unittest.TestCase):
             f"Missing form actions: {sorted(required_actions - form_actions)}",
         )
 
-        recovery_form_tag, recovery_form = probe.elements_by_id["recovery-form"]
+        recovery_probe = probes[3]
+        recovery_form_tag, recovery_form = recovery_probe.elements_by_id["recovery-form"]
         self.assertEqual(recovery_form_tag, "form")
         self.assertEqual(recovery_form.get("class"), "recovery-form")
         control_names = {
-            attrs.get("name") for _, attrs in probe.controls if attrs.get("name")
+            attrs.get("name") for probe in probes for _, attrs in probe.controls if attrs.get("name")
         }
         self.assertTrue(
             {
@@ -321,7 +347,7 @@ class DashboardRenderingContractTests(unittest.TestCase):
                 "comment",
             }.issubset(control_names)
         )
-        _, guidance_result = probe.elements_by_id["guidance-result"]
+        _, guidance_result = recovery_probe.elements_by_id["guidance-result"]
         self.assertEqual(guidance_result.get("aria-live"), "polite")
 
         required_scripts = {
@@ -329,28 +355,24 @@ class DashboardRenderingContractTests(unittest.TestCase):
             "/static/run_panels.js",
             "/static/recovery.js",
         }
-        self.assertTrue(required_scripts.issubset(set(probe.scripts)))
-        self.assertNotIn("theme-toggle", probe.elements_by_id)
-        self.assertNotIn("/static/theme.js", probe.scripts)
+        scripts = {script for probe in probes for script in probe.scripts}
+        self.assertTrue(required_scripts.issubset(scripts))
+        self.assertTrue(all("theme-toggle" not in probe.elements_by_id for probe in probes))
+        self.assertNotIn("/static/theme.js", scripts)
         self.assertTrue(
-            any(href.startswith("/static/style.css") for href in probe.stylesheets)
+            all(any(href.startswith("/static/style.css") for href in probe.stylesheets) for probe in probes)
         )
-        self.assertIn("dashboard-wordmark", probe.classes)
-        self.assertIn("dashboard-view-menu", probe.classes)
-        self.assertIn("dashboard-secondary-heading", probe.classes)
-        self.assertIn("workout-insights", probe.classes)
-        self.assertIn("Run with clarity", probe.text)
-        section_order = list(probe.elements_by_id)
+        classes = set().union(*(probe.classes for probe in probes))
+        self.assertIn("dashboard-wordmark", classes)
+        self.assertIn("mobile-product-nav", classes)
+        self.assertIn("dashboard-secondary-heading", classes)
+        self.assertIn("workout-insights", classes)
+        self.assertIn("Overview", probes[0].text)
+        section_order = list(probes[0].elements_by_id)
         self.assertLess(section_order.index("daily"), section_order.index("readiness"))
-        self.assertLess(section_order.index("readiness"), section_order.index("plan-actual"))
-
-        compact_response = self.client.get("/static/dashboard_compact.js")
-        compact_script = compact_response.get_data(as_text=True)
-        compact_response.close()
-        default_set = compact_script.split("]);", 1)[0]
-        self.assertNotIn('"plan-actual"', default_set)
-        self.assertIn('"goal-center"', default_set)
-        self.assertIn('"workouts"', default_set)
+        for route, probe in zip(routes, probes):
+            active = [link for link in probe.links if link.get("aria-current") == "page"]
+            self.assertGreaterEqual(len(active), 1, route)
 
     def test_unauthenticated_login_renders_required_controls(self):
         response = self.client.get("/")
@@ -390,23 +412,15 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertNotIn("theme-toggle", probe.elements_by_id)
         self.assertNotIn("/static/theme.js", probe.scripts)
         self.assert_local_images(
-            probe, {"/static/images/gaman-mountain-road-hero.jpg"}
+            probe, {"/static/images/gaman-mountain-valley.jpg"}
         )
+        self.assert_landing_video(probe)
         self.assertIn("Run with clarity", probe.text)
-        self.assertIn("After at least five feedback entries", probe.text)
-        self.assertIn("inspectable linear regression", probe.text)
-        self.assertIn("See the story behind the miles", probe.text)
-        self.assertIn("From activity file to next run", probe.text)
-        self.assertIn("API credentials are never placed in the browser", probe.text)
-        self.assertIn("never a diagnosis", probe.text)
-        self.assertIn("Every run moves the plan forward", probe.text)
-        self.assertIn("landing-about-visual", probe.classes)
-        self.assertIn("about-route-map", probe.classes)
-        self.assertIn("Two systems. Two clearly defined jobs", probe.text)
-        self.assertIn("Predicted difficulty", probe.text)
-        self.assertIn("Minimum five rated runs", probe.text)
-        self.assertIn("Urgent symptoms bypass ordinary AI guidance", probe.text)
-        self.assertIn("no confidence interval", probe.text)
+        self.assertIn("Less dashboard noise", probe.text)
+        self.assertIn("Your activity becomes a decision you can inspect", probe.text)
+        self.assertIn("Honest limits where it does not", probe.text)
+        self.assertIn("A running workspace built around the data", probe.text)
+        self.assertIn("/how-it-works", hrefs)
         dialog_tag, dialog = probe.elements_by_id["login-dialog"]
         self.assertEqual(dialog_tag, "dialog")
         self.assertEqual(dialog.get("aria-labelledby"), "login-dialog-title")
@@ -418,16 +432,22 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertEqual(
             sum(1 for _, attrs in probe.elements if "data-about-benefit" in attrs), 3
         )
-        disclosures = [
-            (tag, attrs)
-            for tag, attrs in probe.elements
-            if "data-about-disclosure" in attrs
-        ]
-        self.assertEqual(len(disclosures), 3)
-        self.assertTrue(all(tag == "details" and "open" not in attrs for tag, attrs in disclosures))
         self.assertNotIn("Run farther. Recover smarter.", probe.text)
         self.assertNotIn("landing-story", probe.classes)
         self.assertNotIn("daily", probe.elements_by_id)
+
+    def test_how_it_works_explains_model_boundaries(self):
+        response = self.client.get("/how-it-works")
+        probe = parse(response)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Direct activity data", probe.text)
+        self.assertIn("Rule-based calculations", probe.text)
+        self.assertIn("Statistical model", probe.text)
+        self.assertIn("Optional language model", probe.text)
+        self.assertIn("After at least five rated runs", probe.text)
+        self.assertIn("Urgent symptoms bypass ordinary guidance", probe.text)
+        self.assertIn("No diagnosis or emergency care", probe.text)
 
     def test_failed_login_marks_dialog_for_auto_open(self):
         with patch.dict(app_module.os.environ, {"APP_PASSWORD": "expected-password"}):
@@ -439,6 +459,19 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertEqual(dialog.get("data-auto-open"), "true")
         self.assertTrue(any(attrs.get("role") == "alert" for _, attrs in probe.elements))
         self.assertIn("Incorrect password", probe.text)
+
+    def test_product_areas_are_protected_and_responsive_navigation_is_defined(self):
+        for route in ("/training", "/activities", "/recovery", "/profile"):
+            response = self.client.get(route)
+            self.assertEqual(response.status_code, 302)
+            self.assertTrue(response.headers["Location"].endswith("/"))
+
+        style_response = self.client.get("/static/style.css")
+        stylesheet = style_response.get_data(as_text=True)
+        style_response.close()
+        self.assertIn(".mobile-product-nav", stylesheet)
+        self.assertIn("@media (max-width: 900px)", stylesheet)
+        self.assertIn("@media (prefers-reduced-motion: reduce)", stylesheet)
 
     def test_run_detail_renders_for_an_authenticated_sample_run(self):
         self.authenticate()
@@ -461,7 +494,7 @@ class DashboardRenderingContractTests(unittest.TestCase):
             "Use an easy or rest day next if this effort felt hard", probe.text
         )
         self.assertIn(
-            "/#activity-analysis", {link.get("href") for link in probe.links}
+            "/activities#activity-analysis", {link.get("href") for link in probe.links}
         )
         self.assertTrue(
             any(href.startswith("/static/style.css") for href in probe.stylesheets)

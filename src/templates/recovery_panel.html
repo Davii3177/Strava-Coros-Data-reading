@@ -1,0 +1,31 @@
+<section class="card recovery-card" id="recovery">
+  <div class="section-heading">
+    <div><p class="section-kicker">Educational recovery guidance</p><h2>Check in with your body</h2></div>
+    <span class="safety-label">Not a diagnosis</span>
+  </div>
+  <p class="recovery-intro">Choose every area that needs attention and describe what you feel. Recent training is added when available. Urgent symptoms bypass ordinary guidance.</p>
+  <div class="recovery-layout">
+    <div class="anatomy-panel">
+      <p class="panel-label">Choose a body region</p>
+      <p class="body-help" id="body-help">Select the illustration or use the labeled buttons. Multiple areas are supported.</p>
+      <div class="mannequin-wrap" aria-describedby="body-help">
+        <svg class="mannequin" viewBox="0 0 365 590" aria-hidden="true"><text x="95" y="290">Loading front view</text><text x="235" y="290">Loading back view</text></svg>
+      </div>
+      <div class="region-list" id="region-list"><button type="button" data-area="neck" aria-pressed="false">Neck</button><button type="button" data-area="shoulders" aria-pressed="false">Shoulders</button><button type="button" data-area="lower_back" aria-pressed="false">Lower back</button><button type="button" data-area="kneecap" aria-pressed="false">Kneecap</button><button type="button" data-area="shins" aria-pressed="false">Shins</button><button type="button" data-area="calves" aria-pressed="false">Calves</button><button type="button" data-area="achilles" aria-pressed="false">Achilles</button><button type="button" data-area="feet" aria-pressed="false">Feet / arches</button></div>
+    </div>
+
+    <form class="recovery-form" id="recovery-form">
+      <div id="selected-areas" class="selected-areas">Select one or more body regions</div>
+      <label>Pain level <output id="pain-output">5 / 10</output><input id="pain-level" name="pain_level" type="range" min="1" max="10" value="5"></label>
+      <label>When did it begin?<select name="onset"><option value="gradual">Gradually</option><option value="sudden">Suddenly</option><option value="after_run">After a specific run</option></select></label>
+      <fieldset><legend>What does it feel like?</legend>{% for value in ['sharp','dull','tight','sore','burning','numb','tingling'] %}<label class="check"><input type="checkbox" name="sensation" value="{{ value }}"> {{ value }}</label>{% endfor %}</fieldset>
+      <fieldset><legend>When does it bother you?</legend>{% for value in ['running','walking','rest','movement'] %}<label class="check"><input type="checkbox" name="triggers" value="{{ value }}"> {{ value }}</label>{% endfor %}</fieldset>
+      <label>Anything important to share?<textarea name="notes" maxlength="1000" placeholder="Example: pain after hills, swelling, or a recent fall."></textarea></label>
+      <p class="form-note">Chest pain, breathing trouble, severe pain, new numbness or weakness, deformity, or inability to bear weight needs prompt in-person medical attention.</p>
+      <button class="primary-button" type="submit">Create recovery check-in</button>
+    </form>
+  </div>
+  <div id="guidance-result" class="guidance-result" hidden aria-live="polite"></div>
+  <div class="training-context"><span>Direct activity data used</span><p>{{ recovery_context.recent_runs }} recent sessions · {{ recovery_context.recent_distance_km }} km · {{ recovery_context.recent_elevation_m }} m climbed{% if recovery_context.load_change_percent is not none %} · distance changed {{ '%+.0f'|format(recovery_context.load_change_percent) }}%{% endif %}</p></div>
+  {% if recovery_checkins %}<details class="recovery-history"><summary>Previous check-ins ({{ recovery_checkins|length }})</summary>{% for checkin in recovery_checkins %}<article class="history-item{% if checkin.urgent %} urgent{% endif %}"><p><strong>{{ checkin.body_areas|join(', ')|replace('_', ' ')|title }}</strong> · pain {{ checkin.pain_level }}/10 · {{ checkin.created_at[:10] }}</p><p>{{ checkin.guidance }}</p></article>{% endfor %}</details>{% endif %}
+</section>

@@ -51,7 +51,49 @@ def index():
                 error = "Incorrect password."
         return render_template("login.html", error=error)
 
-    return render_template("dashboard.html", **_dashboard_context())
+    return _render_product_area("overview")
+
+
+def _render_product_area(active_area: str):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    area_titles = {
+        "overview": ("Overview", "Today’s work, recovery, and weekly direction."),
+        "training": ("Training", "Plan the week and understand the work behind it."),
+        "activities": ("Activities", "Find a run, inspect the data, and add feedback."),
+        "recovery": ("Body & Recovery", "Track symptoms and make conservative recovery decisions."),
+        "profile": ("Profile & Connections", "Manage data sources, shoes, races, and privacy."),
+    }
+    if active_area not in area_titles:
+        abort(404)
+    context = _dashboard_context()
+    context.update(active_area=active_area, area_title=area_titles[active_area][0], area_description=area_titles[active_area][1])
+    return render_template("dashboard.html", **context)
+
+
+@app.route("/training")
+def training_page():
+    return _render_product_area("training")
+
+
+@app.route("/activities")
+def activities_page():
+    return _render_product_area("activities")
+
+
+@app.route("/recovery")
+def recovery_page():
+    return _render_product_area("recovery")
+
+
+@app.route("/profile")
+def profile_page():
+    return _render_product_area("profile")
+
+
+@app.route("/how-it-works")
+def how_it_works_page():
+    return render_template("how_it_works.html")
 
 
 @app.route("/logout")
@@ -92,7 +134,7 @@ def submit_feedback(run_id):
             submitted_at=datetime.now(timezone.utc).isoformat(),
         )
     )
-    return redirect(url_for("index") + "#feedback")
+    return redirect(url_for("activities_page") + "#feedback")
 
 
 @app.route("/feedback/<run_id>/delete", methods=["POST"])
@@ -100,7 +142,7 @@ def delete_feedback(run_id):
     if not session.get("authenticated"):
         return redirect(url_for("index"))
     feedback_store.delete(run_id)
-    return redirect(url_for("index") + "#feedback")
+    return redirect(url_for("activities_page") + "#feedback")
 
 
 @app.route("/feedback/<run_id>/dismiss", methods=["POST"])
@@ -113,7 +155,7 @@ def dismiss_feedback(run_id):
         abort(404)
     if run_id not in feedback_store.load_all():
         feedback_store.dismiss(run_id)
-    return redirect(url_for("index") + "#feedback")
+    return redirect(url_for("activities_page") + "#feedback")
 
 
 @app.route("/races", methods=["POST"])
@@ -148,7 +190,7 @@ def add_race():
     priority = request.form.get("priority") == "on"
 
     race_store.save(Race(date=race_date, name=name, distance_km=distance_km, target_time_min=target_time_min, priority=priority))
-    return redirect(url_for("index"))
+    return redirect(url_for("training_page") + "#races")
 
 
 @app.route("/races/<date_str>/delete", methods=["POST"])
@@ -156,7 +198,7 @@ def delete_race(date_str):
     if not session.get("authenticated"):
         return redirect(url_for("index"))
     race_store.delete(date_str)
-    return redirect(url_for("index"))
+    return redirect(url_for("training_page") + "#races")
 
 
 @app.route("/training/today", methods=["POST"])
@@ -200,7 +242,7 @@ def add_shoe():
     if replacement_km is not None and not 1 <= replacement_km <= 5000:
         abort(400)
     shoe_store.add(brand, model, nickname, purchase_date, replacement_km)
-    return redirect(url_for("index") + "#shoes")
+    return redirect(url_for("profile_page") + "#shoes")
 
 
 @app.route("/shoes/<shoe_id>/retire", methods=["POST"])
@@ -209,7 +251,7 @@ def retire_shoe(shoe_id):
         return redirect(url_for("index"))
     if not shoe_store.retire(shoe_id):
         abort(404)
-    return redirect(url_for("index") + "#shoes")
+    return redirect(url_for("profile_page") + "#shoes")
 
 
 @app.route("/runs/<run_id>/shoe", methods=["POST"])
@@ -222,7 +264,7 @@ def assign_run_shoe(run_id):
     if shoe_id not in {shoe.id for shoe in shoe_store.load_all()}:
         abort(400)
     shoe_store.assign(run_id, shoe_id)
-    return redirect(url_for("index") + "#shoes")
+    return redirect(url_for("profile_page") + "#shoes")
 
 
 @app.route("/runs/<run_id>")
@@ -245,7 +287,7 @@ def recovery_adherence(checkin_id):
         abort(400)
     if not recovery_store.update_adherence(checkin_id, adherence):
         abort(404)
-    return redirect(url_for("index") + "#recovery-timeline")
+    return redirect(url_for("recovery_page") + "#recovery-timeline")
 
 
 @app.route("/recovery/export")

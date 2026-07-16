@@ -3,94 +3,68 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gaman AI - Running dashboard</title>
-  <meta name="description" content="A focused view of today's run, recent training load, race progress, activity details, and recovery check-ins.">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='professional-20260716a') }}">
+  <title>{{ area_title }} - Gaman AI</title>
+  <meta name="description" content="{{ area_description }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='editorial-20260716') }}">
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body area-{{ active_area }}">
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand dashboard-wordmark" href="#daily" aria-label="Gaman AI dashboard">Gaman AI</a>
-      <nav aria-label="Dashboard navigation" class="sidebar-nav">
-        <a href="#daily">Today</a><a href="#readiness">Readiness</a><a href="#plan-actual">Weekly plan</a><a href="#activity-analysis">Activities</a><a href="#recovery">Body &amp; Recovery</a>
-        <details class="sidebar-more"><summary>More tools <span aria-hidden="true">+</span></summary><div><a href="#feedback">Run feedback</a><a href="#goal-center">Race goal</a><a href="#personal-records">Personal records</a><a href="#calendar">Calendar</a><a href="#pace-trends">Pace trend</a><a href="#runs">All runs</a><a href="#workouts">Training insights</a><a href="#shoes">Shoes</a><a href="#recovery-timeline">Recovery history</a><a href="#races">Manage races</a></div></details>
+      <a class="brand dashboard-wordmark" href="{{ url_for('index') }}" aria-label="Gaman AI overview">Gaman AI</a>
+      <nav aria-label="Product areas" class="sidebar-nav product-nav">
+        <a href="{{ url_for('index') }}"{% if active_area == 'overview' %} class="active" aria-current="page"{% endif %}>Overview</a>
+        <a href="{{ url_for('training_page') }}"{% if active_area == 'training' %} class="active" aria-current="page"{% endif %}>Training</a>
+        <a href="{{ url_for('activities_page') }}"{% if active_area == 'activities' %} class="active" aria-current="page"{% endif %}>Activities</a>
+        <a href="{{ url_for('recovery_page') }}"{% if active_area == 'recovery' %} class="active" aria-current="page"{% endif %}>Body &amp; Recovery</a>
+        <a href="{{ url_for('profile_page') }}"{% if active_area == 'profile' %} class="active" aria-current="page"{% endif %}>Profile</a>
       </nav>
-      <div class="connections"><p class="conn-line{{ '' if strava_connected else ' conn-off' }}">Strava {{ 'synced' if strava_connected else 'offline' }}</p><p class="conn-line{{ '' if coros_connected else ' conn-off' }}">Coros {{ 'synced' if coros_connected else 'offline' }}</p></div>
-      <div class="sidebar-footer"><a href="{{ url_for('logout') }}">Log out</a></div>
+      <div class="connections" aria-label="Connection status">
+        <p class="conn-line{{ '' if strava_connected else ' conn-off' }}">Strava {{ 'connected' if strava_connected else 'not connected' }}</p>
+        <p class="conn-line{{ '' if coros_connected else ' conn-off' }}">Coros {{ 'connected' if coros_connected else 'not connected' }}</p>
+      </div>
+      <div class="sidebar-footer"><a href="{{ url_for('how_it_works_page') }}">How it works</a><a href="{{ url_for('logout') }}">Log out</a></div>
     </aside>
 
-    <main class="main">
-      <section class="dashboard-toolbar" aria-label="Dashboard shortcuts">
-        <div class="toolbar-title"><small>Your running dashboard</small><strong>Run with clarity</strong><span>Today's work, recent load, and what comes next.</span></div>
-        <nav class="quick-nav" aria-label="Primary dashboard areas"><a href="#daily">Today</a><a href="#readiness">Readiness</a><a href="#plan-actual">Weekly plan</a></nav>
-        <details class="dashboard-view-menu"><summary>View options</summary><div class="view-controls"><button type="button" data-expand-all>Open all tools</button><button type="button" data-compact-all>Compact tools</button></div></details>
-      </section>
+    <main class="main" id="main-content">
+      <header class="dashboard-page-header">
+        <div><p class="section-kicker">Gaman AI / {{ active_area|upper }}</p><h1>{{ area_title }}</h1><p>{{ area_description }}</p></div>
+        {% if sample_data %}<div class="sample-label"><strong>Example data</strong><span>Connect a source to use your runs.</span></div>{% endif %}
+      </header>
+
+      {% if active_area == 'recovery' %}{% include 'recovery_panel.html' %}{% endif %}
       {% include 'daily_companion.html' %}
 
-      {% if not runs %}
-      <section class="card empty-card"><p class="section-kicker">Getting started</p><h2>Connect a source to begin</h2><p>When Strava or Coros activities arrive, this dashboard will show your pace, training load, race plan, and recovery context.</p></section>
-      {% else %}
-      <section class="card chart-card" id="pace-trends"><div class="section-heading"><div><p class="section-kicker">Pace trend</p><h2>How your pace has changed</h2><p class="section-description">Each point is a loaded Strava or Coros activity. Lower pace values are faster.</p></div></div><div class="chart-wrap">{{ chart_html | safe }}</div></section>
-
-      <section class="card" id="runs"><div class="section-heading"><div><p class="section-kicker">All recent runs</p><h2>Activity table</h2><p class="section-description">The complete summary data currently loaded from your connected sources.</p></div><span class="tag">{{ run_count }} runs</span></div><div class="table-wrap" role="region" aria-label="All recent runs table" tabindex="0"><table><thead><tr><th>Date</th><th>Source</th><th>Distance</th><th>Duration</th><th>Heart rate</th><th>Pace</th><th>Elevation</th></tr></thead><tbody>{% for r in runs %}<tr><td>{{ r.date }}</td><td><span class="source-pill">{{ r.source }}</span></td><td>{{ r.distance_km }} km</td><td>{{ r.duration_min }} min</td><td>{{ r.avg_hr if r.avg_hr else 'Unavailable' }}</td><td>{{ r.pace_str }}</td><td>{{ r.elevation_gain_m }} m</td></tr>{% endfor %}</tbody></table></div></section>
+      {% if active_area in ['training', 'activities'] and not runs %}
+      <section class="card empty-card"><p class="section-kicker">Getting started</p><h2>Connect a source to begin</h2><p>When Strava or Coros activities arrive, this page will show your real training data.</p></section>
       {% endif %}
 
-      <section class="card recovery-card" id="recovery">
-        <div class="section-heading"><div><p class="section-kicker">Body &amp; Recovery</p><h2>Check in with your body</h2></div><span class="safety-label">AI-assisted education</span></div>
-        <p class="recovery-intro">Choose every area that needs attention and describe what you feel. Guidance uses your recent training data when available. It is educational, not a diagnosis or a replacement for in-person care.</p>
-        <div class="recovery-layout">
-          <div class="anatomy-panel"><p class="panel-label">Choose a body region</p><p class="body-help" id="body-help">Use the labeled buttons below the diagram for keyboard access.</p><div class="mannequin-wrap" aria-describedby="body-help">
-            <svg class="mannequin" viewBox="0 0 310 490" aria-hidden="true">
-              <text x="78" y="24">FRONT</text><text x="215" y="24">BACK</text>
-              <g data-area="neck" class="body-region"><circle cx="93" cy="52" r="18"/><circle cx="224" cy="52" r="18"/></g>
-              <g data-area="shoulders" class="body-region"><path d="M63 78 Q93 60 123 78 L133 102 L53 102Z"/><path d="M194 78 Q224 60 254 78 L264 102 L184 102Z"/></g>
-              <g data-area="chest" class="body-region"><path d="M60 104 L126 104 L119 158 L67 158Z"/></g><g data-area="upper_back" class="body-region"><path d="M191 104 L257 104 L250 158 L198 158Z"/></g>
-              <g data-area="elbows" class="body-region"><path d="M49 105 L63 109 L51 170 L35 166Z"/><path d="M123 109 L137 105 L151 166 L135 170Z"/><path d="M180 105 L194 109 L182 170 L166 166Z"/><path d="M254 109 L268 105 L282 166 L266 170Z"/></g>
-              <g data-area="wrists_hands" class="body-region"><path d="M34 170 L53 174 L45 222 L25 222Z"/><path d="M133 174 L152 170 L161 222 L141 222Z"/><path d="M165 170 L184 174 L176 222 L156 222Z"/><path d="M264 174 L283 170 L292 222 L272 222Z"/></g>
-              <g data-area="lower_back" class="body-region"><path d="M198 160 L250 160 L248 211 L200 211Z"/></g><g data-area="hips" class="body-region"><path d="M65 160 L121 160 L130 213 L56 213Z"/><path d="M196 213 L252 213 L261 160 L187 160Z"/></g>
-              <g data-area="glutes" class="body-region"><path d="M194 214 Q224 197 254 214 L251 248 L197 248Z"/></g><g data-area="groin" class="body-region"><path d="M66 214 L120 214 L115 248 L71 248Z"/></g>
-              <g data-area="quads" class="body-region"><path d="M69 250 L93 250 L88 337 L61 337Z"/><path d="M96 250 L120 250 L128 337 L101 337Z"/></g><g data-area="hamstrings" class="body-region"><path d="M199 250 L223 250 L218 337 L191 337Z"/><path d="M226 250 L250 250 L258 337 L231 337Z"/></g>
-              <g data-area="knees" class="body-region"><path d="M60 338 L89 338 L88 366 L59 366Z"/><path d="M100 338 L129 338 L130 366 L101 366Z"/><path d="M190 338 L219 338 L218 366 L189 366Z"/><path d="M230 338 L259 338 L260 366 L231 366Z"/></g>
-              <g data-area="shins" class="body-region"><path d="M59 368 L88 368 L84 438 L58 438Z"/><path d="M101 368 L130 368 L132 438 L106 438Z"/></g><g data-area="calves" class="body-region"><path d="M189 368 L218 368 L214 438 L188 438Z"/><path d="M231 368 L260 368 L262 438 L236 438Z"/></g>
-              <g data-area="ankles" class="body-region"><path d="M58 440 L85 440 L84 454 L57 454Z"/><path d="M106 440 L133 440 L134 454 L107 454Z"/><path d="M188 440 L215 440 L214 454 L187 454Z"/><path d="M236 440 L263 440 L264 454 L237 454Z"/></g>
-              <g data-area="feet" class="body-region"><path d="M54 456 L87 456 L100 472 L52 472Z"/><path d="M103 456 L136 456 L151 472 L103 472Z"/><path d="M184 456 L217 456 L230 472 L182 472Z"/><path d="M233 456 L266 456 L281 472 L233 472Z"/></g>
-            </svg>
-          </div><div class="region-list" id="region-list">{% for value, label in [('neck','Neck'),('shoulders','Shoulders'),('upper_back','Upper back'),('lower_back','Lower back'),('chest','Chest'),('elbows','Elbows'),('wrists_hands','Wrists / hands'),('hips','Hips'),('glutes','Glutes'),('groin','Groin'),('quads','Quads'),('hamstrings','Hamstrings'),('knees','Knees'),('shins','Shins'),('calves','Calves'),('ankles','Ankles'),('feet','Feet')] %}<button type="button" data-area="{{ value }}" aria-pressed="false">{{ label }}</button>{% endfor %}</div></div>
-          <form class="recovery-form" id="recovery-form"><div id="selected-areas" class="selected-areas">Select one or more body regions</div><label>Pain level <output id="pain-output">5 / 10</output><input id="pain-level" name="pain_level" type="range" min="1" max="10" value="5"></label><label>When did it begin?<select name="onset"><option value="gradual">Gradually</option><option value="sudden">Suddenly</option><option value="after_run">After a specific run</option></select></label><fieldset><legend>What does it feel like?</legend>{% for value in ['sharp','dull','tight','sore','burning','numb','tingling'] %}<label class="check"><input type="checkbox" name="sensation" value="{{ value }}"> {{ value }}</label>{% endfor %}</fieldset><fieldset><legend>When does it bother you?</legend>{% for value in ['running','walking','rest','movement'] %}<label class="check"><input type="checkbox" name="triggers" value="{{ value }}"> {{ value }}</label>{% endfor %}</fieldset><label>Anything important to share?<textarea name="notes" maxlength="1000" placeholder="Example: pain after hills, swelling, or a recent fall."></textarea></label><p class="form-note">For safety, report chest pain, breathing trouble, severe pain, new numbness/weakness, deformity, or inability to bear weight to a medical professional right away.</p><button class="primary-button" type="submit">Create recovery check-in <span>↗</span></button></form>
-        </div>
-        <div id="guidance-result" class="guidance-result" hidden aria-live="polite"></div>
-        <div class="training-context"><span>Training data used</span><p>{{ recovery_context.recent_runs }} recent sessions · {{ recovery_context.recent_distance_km }} km · {{ recovery_context.recent_elevation_m }} m climbed{% if recovery_context.load_change_percent is not none %} · distance changed {{ '%+.0f'|format(recovery_context.load_change_percent) }}% versus the prior set{% endif %}</p></div>
-        {% if recovery_checkins %}<details class="recovery-history"><summary>Previous check-ins ({{ recovery_checkins|length }})</summary>{% for checkin in recovery_checkins %}<article class="history-item{% if checkin.urgent %} urgent{% endif %}"><p><strong>{{ checkin.body_areas|join(', ')|replace('_', ' ')|title }}</strong> · pain {{ checkin.pain_level }}/10 · {{ checkin.created_at[:10] }}</p><p>{{ checkin.guidance }}</p></article>{% endfor %}</details>{% endif %}
-      </section>
+      {% if active_area == 'training' %}
+        {% if runs %}<section class="card chart-card" id="pace-trends"><div class="section-heading"><div><p class="section-kicker">Measured activity data</p><h2>Pace trend</h2><p class="section-description">Lower pace values are faster. Each point is a loaded Strava or Coros activity.</p></div></div><div class="chart-wrap" role="img" aria-label="Pace across loaded activities">{{ chart_html | safe }}</div></section>{% endif %}
+        {% if runs %}<section class="card workout-insights" id="workouts"><div class="section-heading"><div><p class="section-kicker">Rule-based guidance</p><h2>Patterns and suggested sessions</h2><p class="section-description">Observations from your loaded runs and the next seven days.</p></div></div><div class="columns"><div><h3>What changed</h3><ul>{% for line in feedback %}<li>{{ line }}</li>{% endfor %}</ul></div><div><h3>Suggested sessions</h3><ul>{% for line in workouts %}<li>{{ line }}</li>{% endfor %}</ul></div></div></section>{% endif %}
+        <section class="card" id="races"><div class="section-heading"><div><p class="section-kicker">Race planning</p><h2>Manage race dates</h2></div></div><form method="post" action="{{ url_for('add_race') }}" class="race-form"><label><span>Date</span><input type="date" name="date" required></label><label><span>Event</span><input type="text" name="name" placeholder="City Marathon" required></label><label><span>Distance</span><input type="number" step="0.1" min="0" name="distance_km" placeholder="km"></label><button class="primary-button" type="submit">Add race</button></form>{% if races %}<ul class="race-list">{% for race in races %}<li><span>{{ race.date }} <strong>{{ race.name }}</strong>{% if race.distance_km %} · {{ race.distance_km }} km{% endif %}</span><form method="post" action="{{ url_for('delete_race', date_str=race.date.isoformat()) }}"><button class="link-button danger-link" type="submit">Remove</button></form></li>{% endfor %}</ul>{% endif %}</section>
+      {% endif %}
 
-      {% if runs %}<section class="card workout-insights" id="workouts"><div class="section-heading"><div><p class="section-kicker">Training insights</p><h2>Patterns and suggested sessions</h2><p class="section-description">Rule-based observations and the next seven days in one place.</p></div></div><div class="columns"><div><p class="section-kicker">What changed this week</p><h3>Patterns in your runs</h3><ul>{% for line in feedback %}<li>{{ line }}</li>{% endfor %}</ul></div><div><p class="section-kicker">Next seven days</p><h3>Suggested sessions</h3><ul>{% for line in workouts %}<li>{{ line }}</li>{% endfor %}</ul></div></div></section>
-      <section class="card compact-run-panel" id="feedback" data-run-panel data-default-limit="3">
-        <div class="compact-panel-heading">
-          <div><p class="section-kicker">How did this run feel?</p><h2>Run feedback</h2><p class="compact-summary">Difficulty, soreness, and motivation help adjust future suggestions. Unanswered prompts disappear after {{ feedback_expiry_days }} days; saved feedback stays until you remove it.</p></div>
-          <div class="panel-tools"><label class="run-search"><span class="sr-only">Search feedback runs</span><input type="search" placeholder="Search feedback runs" data-run-search></label><button class="panel-toggle" type="button" data-panel-toggle aria-expanded="false">Show all</button></div>
-        </div>
-        {% if feedback_runs %}<div class="feedback-list compact-run-list" data-run-list>
-        {% for r in feedback_runs %}{% set fb = feedback_by_run.get(r.id) %}
-          <details class="feedback-entry" data-run-item data-search="{{ r.date }} {{ r.source }} {{ r.distance_km }} km {{ 'saved' if fb else 'pending' }}">
-            <summary><span>{{ r.date }} · {{ r.source|title }} · {{ r.distance_km }} km</span><small>{{ 'Saved' if fb else 'Add ratings' }}</small></summary>
-            <form method="post" action="{{ url_for('submit_feedback', run_id=r.id) }}" class="feedback-form">
-              <label>Difficulty<select name="difficulty">{% for i in range(1, 6) %}<option value="{{ i }}" {{ 'selected' if fb and fb.difficulty == i }}>{{ i }}</option>{% endfor %}</select></label>
-              <label>Soreness<select name="soreness">{% for i in range(1, 6) %}<option value="{{ i }}" {{ 'selected' if fb and fb.soreness == i }}>{{ i }}</option>{% endfor %}</select></label>
-              <label>Motivation<select name="motivation">{% for i in range(1, 6) %}<option value="{{ i }}" {{ 'selected' if fb and fb.motivation == i }}>{{ i }}</option>{% endfor %}</select></label>
-              <label class="feedback-comment">Notes<textarea name="comment" rows="2" maxlength="500" placeholder="How did it feel?">{{ fb.comment if fb else '' }}</textarea></label>
-              <button class="primary-button" type="submit">{{ 'Update ratings' if fb else 'Save ratings' }}</button>
-            </form>
-            {% if fb %}<form method="post" action="{{ url_for('delete_feedback', run_id=r.id) }}" class="feedback-remove-form"><button class="link-button danger-link" type="submit">Remove saved feedback</button></form>
-            {% else %}<form method="post" action="{{ url_for('dismiss_feedback', run_id=r.id) }}" class="feedback-remove-form"><button class="link-button" type="submit">Not now · dismiss this prompt</button></form>{% endif %}
-          </details>
-        {% endfor %}
-        </div>{% else %}<p class="empty">No current feedback prompts. New runs stay here for seven days.</p>{% endif %}
-        <p class="panel-empty" data-panel-empty hidden>No feedback runs match that search.</p>
-      </section>{% endif %}
-      <section class="card" id="races"><div class="section-heading"><div><p class="section-kicker">Races</p><h2>Manage race dates</h2></div></div><form method="post" action="{{ url_for('add_race') }}" class="race-form"><label><span>Date</span><input type="date" name="date" required></label><label><span>Event</span><input type="text" name="name" placeholder="City Marathon" required></label><label><span>Distance</span><input type="number" step="0.1" min="0" name="distance_km" placeholder="km"></label><button class="primary-button" type="submit">Add race</button></form>{% if races %}<ul class="race-list">{% for race in races %}<li><span>{{ race.date }} <strong>{{ race.name }}</strong>{% if race.distance_km %} · {{ race.distance_km }} km{% endif %}</span><form method="post" action="{{ url_for('delete_race', date_str=race.date.isoformat()) }}"><button class="link-button" type="submit">Remove</button></form></li>{% endfor %}</ul>{% endif %}</section>
-      <section class="about-panel" id="about"><div><p class="section-kicker">About Gaman AI</p><h2>Built around the training data runners already create.</h2></div><div><p>Gaman AI brings Strava and Coros activities into one practical view for pace trends, workout planning, race goals, and recovery check-ins.</p><p>Recommendations show the evidence available and call out missing data. Recovery guidance is educational and does not replace a coach or clinician.</p><div class="about-links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a></div></div><figure class="about-nature"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="A pale trail leading through a misty mountain valley after rain" loading="lazy"><figcaption>Make space for the long view.</figcaption></figure></section>
+      {% if active_area == 'activities' %}
+        {% if runs %}<section class="card" id="runs"><div class="section-heading"><div><p class="section-kicker">Measured activity data</p><h2>All loaded runs</h2><p class="section-description">Summary measurements from your connected sources.</p></div><span class="tag">{{ run_count }} runs</span></div><div class="table-wrap" role="region" aria-label="All loaded runs" tabindex="0"><table><thead><tr><th>Date</th><th>Source</th><th>Distance</th><th>Duration</th><th>Heart rate</th><th>Pace</th><th>Elevation</th></tr></thead><tbody>{% for r in runs %}<tr><td><a href="{{ url_for('run_detail', run_id=r.id) }}">{{ r.date }}</a></td><td>{{ r.source|title }}</td><td>{{ r.distance_km }} km</td><td>{{ r.duration_min }} min</td><td>{{ r.avg_hr if r.avg_hr else 'Unavailable' }}</td><td>{{ r.pace_str }}</td><td>{{ r.elevation_gain_m }} m</td></tr>{% endfor %}</tbody></table></div></section>{% endif %}
+        {% if runs %}<section class="card compact-run-panel" id="feedback" data-run-panel data-default-limit="3"><div class="compact-panel-heading"><div><p class="section-kicker">Runner-reported context</p><h2>Run feedback</h2><p class="compact-summary">Ratings help adjust future suggestions. Unanswered prompts expire after {{ feedback_expiry_days }} days.</p></div><div class="panel-tools"><label class="run-search"><span class="sr-only">Search feedback runs</span><input type="search" placeholder="Search feedback runs" data-run-search></label><button class="panel-toggle" type="button" data-panel-toggle aria-expanded="false">Show all</button></div></div>{% if feedback_runs %}<div class="feedback-list compact-run-list" data-run-list>{% for r in feedback_runs %}{% set fb = feedback_by_run.get(r.id) %}<details class="feedback-entry" data-run-item data-search="{{ r.date }} {{ r.source }} {{ r.distance_km }} km {{ 'saved' if fb else 'pending' }}"><summary><span>{{ r.date }} · {{ r.source|title }} · {{ r.distance_km }} km</span><small>{{ 'Saved' if fb else 'Add ratings' }}</small></summary><form method="post" action="{{ url_for('submit_feedback', run_id=r.id) }}" class="feedback-form"><label>Difficulty<select name="difficulty">{% for i in range(1, 6) %}<option value="{{ i }}" {{ 'selected' if fb and fb.difficulty == i }}>{{ i }}</option>{% endfor %}</select></label><label>Soreness<select name="soreness">{% for i in range(1, 6) %}<option value="{{ i }}" {{ 'selected' if fb and fb.soreness == i }}>{{ i }}</option>{% endfor %}</select></label><label>Motivation<select name="motivation">{% for i in range(1, 6) %}<option value="{{ i }}" {{ 'selected' if fb and fb.motivation == i }}>{{ i }}</option>{% endfor %}</select></label><label class="feedback-comment">Notes<textarea name="comment" rows="2" maxlength="500" placeholder="How did it feel?">{{ fb.comment if fb else '' }}</textarea></label><button class="primary-button" type="submit">{{ 'Update ratings' if fb else 'Save ratings' }}</button></form>{% if fb %}<form method="post" action="{{ url_for('delete_feedback', run_id=r.id) }}" class="feedback-remove-form"><button class="link-button danger-link" type="submit">Remove saved feedback</button></form>{% else %}<form method="post" action="{{ url_for('dismiss_feedback', run_id=r.id) }}" class="feedback-remove-form"><button class="link-button" type="submit">Dismiss this prompt</button></form>{% endif %}</details>{% endfor %}</div>{% else %}<p class="empty">No current feedback prompts.</p>{% endif %}<p class="panel-empty" data-panel-empty hidden>No feedback runs match that search.</p></section>{% endif %}
+      {% endif %}
+
+      {% if active_area == 'profile' %}
+      <section class="profile-grid" aria-label="Profile settings">
+        <article class="card connection-card"><p class="section-kicker">Data sources</p><h2>Connections</h2><div class="connection-row"><span><strong>Strava</strong><small>Activity import</small></span><b>{{ 'Connected' if strava_connected else 'Not configured' }}</b></div><div class="connection-row"><span><strong>Coros</strong><small>Activity import</small></span><b>{{ 'Connected' if coros_connected else 'Not configured' }}</b></div><p class="caption">Credentials stay on the server and are never placed in browser code.</p></article>
+        <article class="card privacy-card"><p class="section-kicker">Privacy</p><h2>Your data stays inspectable</h2><p>Gaman AI uses the activity fields supplied by your sources and labels unavailable measurements instead of inventing them.</p><a class="text-action" href="{{ url_for('how_it_works_page') }}">Read how guidance works</a></article>
+      </section>
+      <section class="about-panel" id="about"><div><p class="section-kicker">About Gaman AI</p><h2>Built around the data runners already create.</h2></div><div><p>Bring activities, goals, feedback, shoes, and recovery check-ins into one focused workspace.</p><div class="about-links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a></div></div><figure class="about-nature"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="A trail leading through a misty mountain valley" loading="lazy"><figcaption>Make space for the long view.</figcaption></figure></section>
+      {% endif %}
     </main>
   </div>
-  <script src="{{ url_for('static', filename='dashboard_compact.js') }}"></script><script src="{{ url_for('static', filename='run_panels.js') }}"></script><script src="{{ url_for('static', filename='recovery.js') }}"></script>
+
+  <nav class="mobile-product-nav" aria-label="Mobile product areas">
+    <a href="{{ url_for('index') }}"{% if active_area == 'overview' %} class="active" aria-current="page"{% endif %}>Overview</a><a href="{{ url_for('training_page') }}"{% if active_area == 'training' %} class="active" aria-current="page"{% endif %}>Training</a><a href="{{ url_for('activities_page') }}"{% if active_area == 'activities' %} class="active" aria-current="page"{% endif %}>Activities</a><a href="{{ url_for('recovery_page') }}"{% if active_area == 'recovery' %} class="active" aria-current="page"{% endif %}>Recovery</a><a href="{{ url_for('profile_page') }}"{% if active_area == 'profile' %} class="active" aria-current="page"{% endif %}>Profile</a>
+  </nav>
+  <script src="{{ url_for('static', filename='dashboard_compact.js') }}"></script>
+  <script src="{{ url_for('static', filename='run_panels.js') }}"></script>
+  {% if active_area == 'recovery' %}<script src="{{ url_for('static', filename='recovery.js') }}"></script>{% endif %}
 </body>
 </html>

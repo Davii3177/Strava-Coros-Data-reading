@@ -1,4 +1,29 @@
 (function () {
+  var heroVideo = document.querySelector("video.landing-hero-media");
+  var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var compactScreen = window.matchMedia("(max-width: 640px)");
+
+  function updateHeroMotion(event) {
+    if (!heroVideo) return;
+    var saveData = navigator.connection && navigator.connection.saveData;
+    if (event.matches || compactScreen.matches || saveData) {
+      heroVideo.pause();
+      heroVideo.currentTime = 0;
+      return;
+    }
+    var playback = heroVideo.play();
+    if (playback && typeof playback.catch === "function") playback.catch(function () {});
+  }
+
+  updateHeroMotion(reducedMotion);
+  if (typeof reducedMotion.addEventListener === "function") {
+    reducedMotion.addEventListener("change", updateHeroMotion);
+    compactScreen.addEventListener("change", updateHeroMotion);
+  } else if (typeof reducedMotion.addListener === "function") {
+    reducedMotion.addListener(updateHeroMotion);
+    compactScreen.addListener(updateHeroMotion);
+  }
+
   var dialog = document.getElementById("login-dialog");
   if (!dialog) return;
 

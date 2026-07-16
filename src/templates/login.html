@@ -3,203 +3,53 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gaman AI - Run with a clearer plan</title>
+  <title>Gaman AI - Run with clarity</title>
   <meta name="description" content="Gaman AI turns Strava and Coros activity data into a practical daily running plan, training context, and recovery check-ins.">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='professional-20260716a') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='editorial-20260716') }}">
 </head>
 <body class="landing-body">
+  <a class="skip-link" href="#home">Skip to content</a>
   <header class="landing-header">
     <a class="landing-wordmark" href="#home" aria-label="Gaman AI home">Gaman AI</a>
-    <div class="landing-header-actions">
-      <nav class="landing-nav" aria-label="Landing page navigation">
-        <a href="#home">Home</a>
-        <a href="#about">About</a>
-        <a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a>
-        <a href="#access" data-login-open>Sign in</a>
-      </nav>
-    </div>
+    <nav class="landing-nav" aria-label="Landing page navigation"><a href="#home">Home</a><a href="#about">About</a><a href="{{ url_for('how_it_works_page') }}">How it works</a><a href="#access" data-login-open>Sign in</a></nav>
   </header>
 
   <main class="landing-shell">
     <section class="landing-hero" id="home" aria-labelledby="landing-title">
-      <img class="landing-hero-media" src="{{ url_for('static', filename='images/gaman-mountain-road-hero.jpg') }}" width="1672" height="941" alt="Distance runner following a winding alpine road at dawn" fetchpriority="high">
+      <video class="landing-hero-media" autoplay muted loop playsinline preload="metadata" poster="{{ url_for('static', filename='images/gaman-0716-poster.jpg') }}" aria-hidden="true">
+        <source src="{{ url_for('static', filename='videos/gaman-0716-hero.webm') }}" type="video/webm">
+        <source src="{{ url_for('static', filename='videos/gaman-0716-hero.mp4') }}" type="video/mp4">
+      </video>
+      <div class="landing-content"><h1 id="landing-title">Run with clarity</h1><p class="landing-copy">Turn the training data you already create<br>into one clear plan for today.</p><button class="landing-open-dashboard" type="button" data-login-open>Open dashboard</button></div>
+    </section>
 
-      <div class="landing-content">
-        <h1 id="landing-title">Run with clarity</h1>
-        <p class="landing-copy">Turn the training data you already create<br>into one clear plan for today.</p>
-
-        <div class="landing-actions">
-          <button class="landing-open-dashboard" type="button" data-login-open>Open dashboard</button>
-        </div>
+    <section class="landing-benefits" aria-labelledby="benefits-title">
+      <header><p class="section-kicker">Built for the decisions between runs</p><h2 id="benefits-title">Less dashboard noise. More useful direction.</h2></header>
+      <div class="landing-benefit-grid">
+        <article data-about-benefit><span>01</span><h3>Know today’s work</h3><p>See one recommended session and the evidence behind it.</p></article>
+        <article data-about-benefit><span>02</span><h3>Read the week</h3><p>Compare recent load, pace, goals, and completed mileage.</p></article>
+        <article data-about-benefit><span>03</span><h3>Respect recovery</h3><p>Record symptoms and receive conservative educational guidance.</p></article>
       </div>
+    </section>
+
+    <section class="landing-how-preview" aria-labelledby="how-preview-title">
+      <div><p class="section-kicker">How Gaman AI works</p><h2 id="how-preview-title">Your activity becomes a decision you can inspect.</h2><p>Measured activity data feeds transparent calculations, runner feedback adds context, and optional model guidance stays clearly labeled.</p><a class="editorial-link" href="{{ url_for('how_it_works_page') }}">See the complete method</a></div>
+      <ol class="method-track" aria-label="Gaman AI workflow"><li><b>01</b><span>Import</span><small>Strava or Coros</small></li><li><b>02</b><span>Compare</span><small>Load and history</small></li><li><b>03</b><span>Recommend</span><small>One practical action</small></li><li><b>04</b><span>Reflect</span><small>Your feedback</small></li></ol>
+    </section>
+
+    <section class="landing-safety" aria-labelledby="safety-title"><p class="section-kicker">Clear boundaries</p><h2 id="safety-title">Evidence where it exists. Honest limits where it does not.</h2><p>Gaman AI labels measured data, calculated estimates, rule-based coaching, and optional language-model guidance separately. Recovery support is educational and never a diagnosis. Urgent symptoms are directed to in-person care.</p></section>
+
+    <section class="landing-about" id="about" aria-labelledby="about-title">
+      <div class="landing-about-intro"><p class="section-kicker">About Gaman AI</p><h2 id="about-title">A running workspace built around the data you already create.</h2><p>Gaman AI brings activities, goals, workout feedback, shoes, and recovery check-ins into one focused system. It helps runners understand today’s session without hiding the calculations or pretending unavailable measurements exist.</p><p>The product combines direct activity measurements, transparent training-load rules, an inspectable feedback model, and conservative recovery safeguards. Each system has a defined job, and you can read the complete method before trusting a recommendation.</p></div>
+      <figure class="landing-about-photo"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="A trail leading through a misty mountain valley" loading="lazy"><figcaption>Train for the long view.</figcaption></figure>
     </section>
   </main>
 
+  <footer class="landing-footer"><a class="landing-wordmark" href="#home">Gaman AI</a><p>Training direction for runners who want to see the reasoning.</p><nav aria-label="Footer links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a><a href="{{ url_for('how_it_works_page') }}">How it works</a></nav></footer>
+
   <dialog class="login-dialog" id="login-dialog" data-auto-open="{{ 'true' if error else 'false' }}" aria-labelledby="login-dialog-title">
-    <form method="post" class="compact-login" id="access">
-      <button class="login-dialog-close" type="button" data-login-close aria-label="Close password dialog"></button>
-      <div class="login-dialog-copy"><small>Gaman AI</small><h2 id="login-dialog-title">Open dashboard</h2><p>Enter your password to continue.</p></div>
-      {% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}
-      <label for="password">Password</label>
-      <input id="password" type="password" name="password" autocomplete="current-password" required>
-      <button class="login-dialog-submit" type="submit">Continue</button>
-    </form>
+    <form method="post" class="compact-login" id="access"><button class="login-dialog-close" type="button" data-login-close aria-label="Close password dialog"></button><div class="login-dialog-copy"><small>Gaman AI</small><h2 id="login-dialog-title">Open dashboard</h2><p>Enter your password to continue.</p></div>{% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}<label for="password">Password</label><input id="password" type="password" name="password" autocomplete="current-password" required><button class="login-dialog-submit" type="submit">Continue</button></form>
   </dialog>
-
-  <section class="landing-about" id="about" aria-labelledby="about-title">
-    <div class="landing-about-intro">
-      <p>About Gaman AI</p>
-      <h2 id="about-title">Your training, translated into a clearer next move.</h2>
-      <p>Gaman AI is a personal running workspace for athletes who want more than a list of completed activities. It brings your training history, current workload, race plans, run feedback, shoes, and recovery check-ins together, then turns that context into practical guidance you can inspect and understand.</p>
-    </div>
-
-    <div class="landing-about-grid">
-      <article data-about-benefit>
-        <span>01 / One training view</span>
-        <h3>See the story behind the miles.</h3>
-        <p>Bring recent Strava activity and Coros-ready imports into one focused view of distance, pace, heart rate, elevation, consistency, records, and race timing.</p>
-      </article>
-      <article data-about-benefit>
-        <span>02 / Daily decisions</span>
-        <h3>Know what today is for.</h3>
-        <p>See one workout, its intended effort, and the evidence behind it. Complete, shorten, modify, or skip the session without losing the context of your week.</p>
-      </article>
-      <article data-about-benefit>
-        <span>03 / Human context</span>
-        <h3>Keep the guidance honest.</h3>
-        <p>Your ratings and recovery check-ins add context a GPS file cannot. Missing metrics stay labeled as unavailable, and model-based suggestions are used only when their safety checks pass.</p>
-      </article>
-    </div>
-
-    <div class="landing-about-visual" aria-labelledby="training-loop-title">
-      <div class="landing-about-visual-copy">
-        <p>Live training loop</p>
-        <h3 id="training-loop-title">Every run moves the plan forward.</h3>
-        <p>Activity data establishes the route. Your feedback explains the effort. Gaman AI connects both before recommending what comes next.</p>
-        <div class="about-signal-row" aria-label="Signals considered by Gaman AI">
-          <span>Distance</span><span>Pace</span><span>Elevation</span><span>Recovery</span>
-        </div>
-      </div>
-      <div class="about-route-stage" aria-hidden="true">
-        <div class="about-route-status"><span></span>Building training context</div>
-        <svg class="about-route-map" viewBox="0 0 720 300" role="presentation">
-          <defs>
-            <linearGradient id="about-route-gradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#8d729b" />
-              <stop offset=".52" stop-color="#ede8f0" />
-              <stop offset="1" stop-color="#a890b4" />
-            </linearGradient>
-          </defs>
-          <path class="about-route-grid-line" d="M24 54H696M24 150H696M24 246H696M134 24V276M360 24V276M586 24V276" />
-          <path class="about-route-shadow" d="M36 238C104 238 102 164 173 164C244 164 242 215 314 215C390 215 382 82 469 82C548 82 547 137 603 137C650 137 655 67 690 67" />
-          <path class="about-route-line" d="M36 238C104 238 102 164 173 164C244 164 242 215 314 215C390 215 382 82 469 82C548 82 547 137 603 137C650 137 655 67 690 67" />
-          <g class="about-route-point about-route-point-one" transform="translate(36 238)"><circle r="9"/><circle class="about-route-ring" r="18"/></g>
-          <g class="about-route-point about-route-point-two" transform="translate(314 215)"><circle r="9"/><circle class="about-route-ring" r="18"/></g>
-          <g class="about-route-point about-route-point-three" transform="translate(469 82)"><circle r="9"/><circle class="about-route-ring" r="18"/></g>
-          <g class="about-route-point about-route-point-four" transform="translate(690 67)"><circle r="9"/><circle class="about-route-ring" r="18"/></g>
-        </svg>
-        <div class="about-route-label about-route-label-one"><small>01</small><strong>Run</strong><span>Activity recorded</span></div>
-        <div class="about-route-label about-route-label-two"><small>02</small><strong>Reflect</strong><span>Effort rated</span></div>
-        <div class="about-route-label about-route-label-three"><small>03</small><strong>Adapt</strong><span>Context evaluated</span></div>
-        <div class="about-route-label about-route-label-four"><small>04</small><strong>Move</strong><span>Next run clarified</span></div>
-      </div>
-    </div>
-
-    <section class="landing-model-explainer" aria-labelledby="model-explainer-title">
-      <header class="landing-model-header">
-        <div>
-          <p>Inside the intelligence</p>
-          <h3 id="model-explainer-title">Two systems. Two clearly defined jobs.</h3>
-        </div>
-        <p>“AI” does not mean one model controls every decision. Core workout guidance is built from deterministic rules and a small, inspectable model trained only on your rated runs. A separate language model can optionally expand recovery education—but it never controls the urgent-symptom safety gate.</p>
-      </header>
-
-      <div class="landing-model-columns">
-        <article class="landing-model-card landing-model-card-workout">
-          <div class="landing-model-card-heading">
-            <span>01 / Adaptive workout model</span>
-            <h4>A transparent relationship between the run and how it felt.</h4>
-            <p>Each feedback entry links objective activity data to one subjective target: your difficulty rating. Soreness, motivation, and notes remain useful dashboard context, but the current pace model is trained specifically to estimate perceived difficulty.</p>
-          </div>
-
-          <details class="landing-model-details" data-about-disclosure="workout-model">
-            <summary><span>How the workout model works</span><small>Inputs, equation, targets, and fallback</small></summary>
-            <div class="landing-model-details-body">
-              <p>After at least five feedback entries, an inspectable linear regression learns from the runs you rated.</p>
-              <div class="landing-model-formula" aria-label="Workout model formula">
-                <span>Predicted difficulty</span>
-                <code>intercept + distance coefficient × km + pace coefficient × min/km + elevation coefficient × meters</code>
-              </div>
-              <ol class="landing-model-steps">
-                <li><div><strong>Collect</strong><small>Minimum five rated runs</small></div><p>For every saved run rating, the model receives distance, average pace, elevation gain, and your 1–5 difficulty score. Fewer than five entries means no model is fitted.</p></li>
-                <li><div><strong>Fit</strong><small>Linear regression</small></div><p>Scikit-learn fits one intercept and three coefficients. Every learned weight remains inspectable instead of being hidden inside a large neural network.</p></li>
-                <li><div><strong>Solve</strong><small>Target the intended effort</small></div><p>The equation estimates pace for a 7 km easy run at difficulty 2/5 and a 5 km tempo run at difficulty 4/5. It adjusts seven-day pace suggestions—not every feature in the app.</p></li>
-                <li><div><strong>Validate</strong><small>Reject unsafe relationships</small></div><p>A valid fit must learn that a slower min/km pace reduces predicted difficulty. Easy pace must remain slower than tempo pace, and both must be positive.</p></li>
-                <li><div><strong>Refresh</strong><small>Use the current record</small></div><p>The model is rebuilt from currently saved feedback when the dashboard loads. Adding or deleting a rating changes the next fit.</p></li>
-              </ol>
-              <div class="landing-model-baseline"><strong>Before five ratings—or after a rejected fit</strong><p>Gaman AI uses the visible baseline: recent average pace plus 0.5 min/km for easy running and minus 0.3 min/km for tempo running.</p></div>
-            </div>
-          </details>
-        </article>
-
-        <article class="landing-model-card landing-model-card-recovery">
-          <div class="landing-model-card-heading">
-            <span>02 / Optional recovery language model</span>
-            <h4>Expanded education after a rule-based safety check.</h4>
-            <p>The Body &amp; Recovery tool can use a configured OpenAI model to turn structured check-in details into cautious, readable guidance. This model is optional; the application still provides conservative built-in guidance if the service is disabled, unavailable, or times out.</p>
-          </div>
-
-          <details class="landing-model-details" data-about-disclosure="recovery-model">
-            <summary><span>How recovery guidance works</span><small>Context, safety gate, and service fallback</small></summary>
-            <div class="landing-model-details-body">
-              <div class="landing-recovery-inputs">
-                <p>Context sent when enabled</p>
-                <ul>
-                  <li><span>Symptoms</span><strong>Body areas, side, pain level, onset, sensations, movement triggers, location detail, and notes</strong></li>
-                  <li><span>Training</span><strong>Recent seven-run distance, prior seven-run distance, percentage change, elevation, and average pace</strong></li>
-                  <li><span>Instruction</span><strong>Discuss common possibilities without certainty, conservative recovery, gradual return, avoid-for-now items, red flags, and a medical disclaimer</strong></li>
-                </ul>
-              </div>
-              <div class="landing-safety-gate">
-                <div class="landing-safety-icon" aria-hidden="true"><span></span></div>
-                <div><small>Rule-based safety gate</small><strong>Urgent symptoms bypass ordinary AI guidance.</strong><p>Pain at 9–10, numbness or tingling, inability to bear weight, deformity, chest pain, breathing trouble, fever, weakness, trauma-related swelling, or bladder/bowel warning terms trigger the built-in urgent-care message instead.</p></div>
-              </div>
-              <div class="landing-recovery-guardrails">
-                <div><strong>Server-side only</strong><span>The API credentials are never placed in the browser.</span></div>
-                <div><strong>Validated input</strong><span>Regions, symptoms, pain scores, and text lengths are checked.</span></div>
-                <div><strong>Rate limited</strong><span>Recovery requests are limited to five per session hour.</span></div>
-                <div><strong>Safe fallback</strong><span>Failures return conservative built-in guidance.</span></div>
-              </div>
-            </div>
-          </details>
-        </article>
-      </div>
-
-      <details class="landing-model-limits" data-about-disclosure="limits">
-        <summary><span>Current limits, stated plainly</span><small>What Gaman AI does not know</small></summary>
-        <ul>
-          <li>The five-entry threshold allows a fit; it does not prove that the fit is accurate.</li>
-          <li>The workout model currently has no confidence interval, held-out validation score, or injury-risk prediction.</li>
-          <li>Linear regression cannot capture every interaction between terrain, weather, fatigue, sleep, fueling, and pace.</li>
-          <li>The recovery language model can produce incomplete or incorrect text and must not be treated as a diagnosis.</li>
-          <li>Missing splits, cadence, HRV, sleep, and resting heart rate remain unavailable until a source supplies them.</li>
-        </ul>
-      </details>
-    </section>
-
-    <aside class="landing-about-note" aria-label="Gaman AI data and model note">
-      <p>Built for trust</p>
-      <div>
-        <h3>From activity file to next run.</h3>
-        <p>Core analysis uses visible calculations and the feedback-trained workout model. Optional large-model assistance is limited to recovery education when securely configured. Guidance is educational, never a diagnosis, and the runner remains responsible for every training decision.</p>
-      </div>
-    </aside>
-  </section>
-
-  <footer class="landing-footer" id="contact">
-    <div><strong>Gaman AI</strong><span>Built by David for a clearer next run.</span></div>
-    <nav aria-label="Contact links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a></nav>
-  </footer>
   <script src="{{ url_for('static', filename='landing.js') }}"></script>
 </body>
 </html>
