@@ -280,8 +280,8 @@ def _all_runs() -> list[Run]:
 
 # Validated (CVD-safe, contrast-checked on both the light and dark surfaces
 # in style.css) categorical colors, one per data source. Kept separate from
-# the UI accent color so chart identity never gets confused with brand chrome.
-SOURCE_COLORS = {"strava": "#3987e5", "coros": "#d95926"}
+# the UI accent color so chart identity stays separate from interface actions.
+SOURCE_COLORS = {"strava": "#7550a6", "coros": "#77717c"}
 
 BODY_AREAS = {
     "head_face", "jaw", "neck", "collarbones", "shoulders", "biceps_triceps",
@@ -419,26 +419,33 @@ def _pace_chart_html(runs: list[Run]) -> str:
     fig = go.Figure()
     for source, source_runs in by_source.items():
         ordered = sorted(source_runs, key=lambda r: r.date)
-        color = SOURCE_COLORS.get(source, "#42f4e8")
+        color = SOURCE_COLORS.get(source, "#7550a6")
         fig.add_trace(
             go.Scatter(
                 x=[r.date.isoformat() for r in ordered],
                 y=[r.avg_pace_min_km for r in ordered],
+                customdata=[[f"{r.avg_hr} bpm" if r.avg_hr else "Unavailable", r.elevation_gain_m] for r in ordered],
                 mode="lines+markers",
-                name=source.upper(),
+                name=source.title(),
                 line=dict(color=color, width=2),
-                marker=dict(color=color, size=9, line=dict(color="#ffffff", width=2)),
+                marker=dict(color=color, size=9, line=dict(color="#fbfafc", width=1.5)),
+                hovertemplate=(
+                    "<b>%{x}</b><br>Pace: %{y:.2f} min/km"
+                    "<br>Heart rate: %{customdata[0]}"
+                    "<br>Elevation gain: %{customdata[1]} m<extra>%{fullData.name}</extra>"
+                ),
             )
         )
-    fig.update_yaxes(autorange="reversed", title="Pace (min/km)", gridcolor="#e8e8e8", linecolor="#e8e8e8")
-    fig.update_xaxes(gridcolor="#e8e8e8", linecolor="#e8e8e8")
+    fig.update_yaxes(autorange="reversed", title="Average pace (min/km)", gridcolor="rgba(98,93,102,.16)", linecolor="rgba(98,93,102,.2)")
+    fig.update_xaxes(title="Run date", gridcolor="rgba(98,93,102,.12)", linecolor="rgba(98,93,102,.2)")
     fig.update_layout(
-        margin=dict(l=40, r=20, t=20, b=40),
-        height=380,
-        font=dict(family="Oswald, Barlow, sans-serif", size=13, color="#111111"),
+        margin=dict(l=54, r=20, t=18, b=52),
+        height=330,
+        font=dict(family="Arial, sans-serif", size=12, color="#5f5963"),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+        hoverlabel=dict(font=dict(family="Arial, sans-serif", size=12)),
     )
     return fig.to_html(full_html=False, include_plotlyjs="cdn", div_id="pace-chart")
 

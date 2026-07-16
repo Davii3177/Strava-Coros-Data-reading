@@ -1,6 +1,6 @@
 # Gaman AI
 
-Gaman AI is a password-protected running intelligence dashboard that brings Strava and Coros activity data into one focused experience. It combines transparent training analysis, adaptive workout suggestions, race planning, subjective run feedback, and educational recovery check-ins.
+Gaman AI is a password-protected running dashboard that brings Strava and Coros activity data into one focused experience. It combines transparent training analysis, adaptive workout suggestions, race planning, subjective run feedback, and educational recovery check-ins.
 
 ## Live app
 
@@ -30,19 +30,36 @@ The hosted app is password-protected. Ask the owner for access.
 - A trained workout model that adapts suggestions from logged feedback
 - Detailed Body & Recovery check-ins with saved history
 - Optional server-side AI-expanded recovery education
-- Responsive light and dark themes
+- A consistent responsive light theme
 
-## New Gaman AI experience
+## Editorial trail-running experience
 
 The interface was redesigned and renamed from **Run Coach** to **Gaman AI**.
 
-- The startup page now explains how Strava and Coros activities become training analysis, workout suggestions, and recovery guidance.
-- The password form is integrated into the hero instead of appearing as a separate login panel.
-- GitHub and contact links are available in the startup-page footer.
-- Light mode uses an icy white, blue, and yellow palette.
-- Dark mode uses black, green, red, and purple.
-- The sun/moon control switches themes and includes accessible labels.
-- The dashboard includes responsive navigation, glass panels, animated data visuals, clearer metrics, improved tables, and mobile layouts.
+- The dashboard prioritizes the decisions a runner needs first: **Today's Run**, **Readiness & Recovery**, and the **Weekly Plan**. Activity search stays compact and immediately available; race tools, records, trends, gear, history, and deeper analysis use progressive disclosure without losing functionality.
+- Real running data—including pace, distance, heart rate, elevation, shoes, race countdowns, and recovery trends—provides the visual focus.
+- Recommendations use short, specific language and show the data behind the suggestion. Measured facts, estimates, and coaching guidance remain clearly distinguished.
+- An intentionally restrained palette uses white and warm-grey surfaces, charcoal text, and a small amount of purple for emphasis.
+- Times New Roman is used for editorial display headings, while a standard system sans-serif keeps body copy, controls, and metrics familiar and readable.
+- Original cinematic trail-running imagery gives the product a distinctive identity without distracting from the data.
+- The responsive light theme retains readable contrast, keyboard focus styles, reduced-motion support, and clear status colors.
+- Consistent spacing, borders, and icons keep the expressive visual language practical. Motion is limited to useful feedback such as loading, progress, and state changes.
+- Responsive navigation keeps common destinations easy to reach and groups less-frequent features under **More tools**.
+- Search, compact views, and collapsible sections keep detailed tools available without overwhelming the main dashboard. Activity Details shows four runs and Run Feedback shows three prompts by default; both support search and Show all/less controls, while feedback deletion, dismissal, and seven-day prompt expiry remain intact.
+- The landing page uses a concise white header and full-bleed cinematic imagery, with one headline, one supporting sentence, and a single Open Dashboard button that reveals a compact password dialog.
+- The landing About experience uses a concise introduction, three benefits, and one Run → Reflect → Adapt → Move animation. Native expandable disclosures preserve the exact workout-model, recovery-model, safety, fallback, and limitation details without placing all technical copy on screen at once.
+- The authenticated dashboard carries the same editorial system into a light top navigation, a dominant Today card paired with readiness, a visible weekly plan, neutral data surfaces, restrained purple accents, and simplified responsive controls.
+- Landing, About, dashboard, run-detail, and recovery interfaces share the same responsive light system, visible keyboard focus, and reduced-motion behavior.
+
+### Image assets and visual direction
+
+The following project-local assets are original images generated for Gaman AI using the built-in OpenAI image generation workflow. They are stored under `src/static/images`:
+
+- `gaman-mountain-road-hero.jpg`
+- `gaman-mountain-valley.jpg`
+- `gaman-ridge-runner.jpg`
+
+[WallpaperSafari's Vintage Aesthetic Landscape collection](https://wallpapersafari.com/vintage-aesthetic-landscape-wallpapers/) was used only as visual direction. No WallpaperSafari-hosted image is integrated into the project because its [copyright policy](https://wallpapersafari.com/page/copyright-policy/) requires permission from the relevant creator and its [terms of service](https://wallpapersafari.com/page/terms-of-service/) prohibit integrating hosted files without express written permission.
 
 ## Body & Recovery
 
@@ -150,8 +167,9 @@ From the repository root:
 ```powershell
 $env:PYTHONPATH='src'
 python -m unittest discover -s tests -v
-node --check src/static/theme.js
 node --check src/static/recovery.js
+node --check src/static/dashboard_compact.js
+node --check src/static/run_panels.js
 ```
 
 The recovery tests cover ordinary guidance, red-flag escalation, validation, and JSON persistence.

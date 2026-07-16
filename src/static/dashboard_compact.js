@@ -1,16 +1,16 @@
 (function () {
   var DEFAULT_COLLAPSED = new Set([
-    "plan-actual", "shoes", "recovery-timeline", "pace-trends",
-    "runs", "calendar", "recovery", "races"
+    "goal-center", "personal-records", "shoes", "recovery-timeline",
+    "pace-trends", "runs", "calendar", "recovery", "workouts", "races"
   ]);
   var sections = [];
 
   function savedState(id) {
-    try { return localStorage.getItem("gaman-section-" + id); } catch (_) { return null; }
+    try { return localStorage.getItem("gaman-section-v2-" + id); } catch (_) { return null; }
   }
 
   function saveState(id, collapsed) {
-    try { localStorage.setItem("gaman-section-" + id, collapsed ? "collapsed" : "expanded"); } catch (_) { /* Storage is optional. */ }
+    try { localStorage.setItem("gaman-section-v2-" + id, collapsed ? "collapsed" : "expanded"); } catch (_) { /* Storage is optional. */ }
   }
 
   function setCollapsed(section, collapsed, persist) {
@@ -68,6 +68,7 @@
   });
   if (compactAll) compactAll.addEventListener("click", function () {
     sections.forEach(function (section) { setCollapsed(section, true, true); });
-    document.getElementById("daily").scrollIntoView({ behavior: "smooth", block: "start" });
+    var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("daily").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
   });
 }());

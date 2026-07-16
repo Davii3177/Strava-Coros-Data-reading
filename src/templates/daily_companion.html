@@ -1,63 +1,100 @@
 <section class="daily-stack" id="daily">
-  {% if sample_data %}<div class="sample-banner">DEMO DATA — connect Strava to replace these sample activities.</div>{% endif %}
+  {% if sample_data %}<div class="sample-banner"><strong>Example activities</strong><span>Connect Strava or Coros to replace these with your own runs.</span></div>{% endif %}
+
   <div class="daily-grid">
     <article class="today-card">
-      <div class="section-heading"><div><p class="eyebrow">TODAY'S RUN</p><h2>{{ today_run.type }}</h2></div><span class="status-pill {{ readiness.tone }}">{{ readiness.status }}</span></div>
-      <div class="today-prescription">
-        <div><small>DISTANCE</small><strong>{{ today_run.distance_km ~ ' km' if today_run.distance_km else 'As needed' }}</strong></div>
-        <div><small>DURATION</small><strong>{{ today_run.duration_min ~ ' min' if today_run.duration_min else 'No target' }}</strong></div>
-        <div><small>TARGET</small><strong>{{ today_run.target }}</strong></div>
+      <div class="today-card-main">
+        <div class="section-heading">
+          <div><p class="section-kicker">Today's run</p><h1>{{ today_run.type }}</h1></div>
+          <span class="status-pill {{ readiness.tone }}">{{ readiness.status }}</span>
+        </div>
+        <div class="today-prescription" aria-label="Workout targets">
+          <div><small>Distance</small><strong>{{ today_run.distance_km ~ ' km' if today_run.distance_km else 'As needed' }}</strong></div>
+          <div><small>Duration</small><strong>{{ today_run.duration_min ~ ' min' if today_run.duration_min else 'No target' }}</strong></div>
+          <div><small>Target effort</small><strong>{{ today_run.target }}</strong></div>
+        </div>
+        <p class="today-purpose">{{ today_run.purpose }}</p>
+        <details class="why-details"><summary>Why this workout?</summary><ul>{% for reason in today_run.reasons %}<li>{{ reason }}</li>{% endfor %}</ul></details>
+        <div class="session-notes"><p><b>Warm-up</b>{{ today_run.warmup }}</p><p><b>Cool-down</b>{{ today_run.cooldown }}</p><p><b>Afterward</b>{{ today_run.recovery }}</p></div>
+        {% if today_saved %}<p class="saved-status">Saved as {{ today_saved.status|title }}{% if today_saved.actual_distance_km is not none %} · {{ today_saved.actual_distance_km }} km{% endif %}</p>{% endif %}
+        <form method="post" action="{{ url_for('update_today_status') }}" class="today-status-form">
+          <label><span>Status</span><select name="status"><option value="complete">Completed</option><option value="shortened">Shortened</option><option value="modified">Modified</option><option value="skipped">Skipped</option></select></label>
+          <label><span>Actual distance</span><input type="number" name="actual_distance_km" min="0" max="500" step="0.1" placeholder="Kilometres"></label>
+          <label class="status-note"><span>Note</span><input type="text" name="note" maxlength="300" placeholder="Optional"></label>
+          <button type="submit">Save workout</button>
+        </form>
       </div>
-      <p class="today-purpose">{{ today_run.purpose }}</p>
-      <details class="why-details"><summary>Why this?</summary><ul>{% for reason in today_run.reasons %}<li>{{ reason }}</li>{% endfor %}</ul></details>
-      <div class="session-notes"><p><b>Warm-up</b>{{ today_run.warmup }}</p><p><b>Cool-down</b>{{ today_run.cooldown }}</p><p><b>Recovery</b>{{ today_run.recovery }}</p></div>
-      {% if today_saved %}<p class="saved-status">Saved: {{ today_saved.status|title }}{% if today_saved.actual_distance_km is not none %} · {{ today_saved.actual_distance_km }} km{% endif %}</p>{% endif %}<form method="post" action="{{ url_for('update_today_status') }}" class="today-status-form">
-        <select name="status" aria-label="Workout status"><option value="complete">Completed</option><option value="shortened">Shortened</option><option value="modified">Modified</option><option value="skipped">Skipped</option></select>
-        <input type="number" name="actual_distance_km" min="0" max="500" step="0.1" placeholder="Actual km">
-        <input type="text" name="note" maxlength="300" placeholder="Optional note">
-        <button type="submit">Save status</button>
-      </form>
     </article>
-    <aside class="readiness-card">
-      <p class="eyebrow">READINESS</p><h2>{{ readiness.status }}</h2>
-      <div class="load-comparison"><div><small>LAST 7 DAYS</small><strong>{{ readiness.recent_km }} km</strong></div><div><small>PRIOR WEEKLY AVG</small><strong>{{ readiness.prior_weekly_km }} km</strong></div></div>
-      {% if readiness.change_percent is not none %}<div class="load-bar"><i style="width:{{ [readiness.change_percent|abs, 100]|min }}%"></i></div><p class="load-change">{{ '%+.0f'|format(readiness.change_percent) }}% load change</p>{% endif %}
-      <details class="why-details"><summary>Why this?</summary><ul>{% for reason in readiness.reasons %}<li>{{ reason }}</li>{% endfor %}</ul></details>
-      <p class="missing-data">Unavailable: {{ readiness.missing|join(', ') }}.</p>
+
+    <aside class="readiness-card" id="readiness">
+      <div class="section-heading"><div><p class="section-kicker">Training load</p><h2>{{ readiness.status }}</h2></div></div>
+      <p class="supporting-copy">Your last seven days compared with your recent weekly baseline.</p>
+      <div class="load-comparison"><div><small>Last 7 days</small><strong>{{ readiness.recent_km }} km</strong></div><div><small>Typical week</small><strong>{{ readiness.prior_weekly_km }} km</strong></div></div>
+      {% if readiness.change_percent is not none %}<div class="load-bar" aria-label="Training load change"><i style="width:{{ [readiness.change_percent|abs, 100]|min }}%"></i></div><p class="load-change">{{ '%+.0f'|format(readiness.change_percent) }}% compared with your baseline</p>{% endif %}
+      <details class="why-details"><summary>See the evidence</summary><ul>{% for reason in readiness.reasons %}<li>{{ reason }}</li>{% endfor %}</ul></details>
+      {% if readiness.missing %}<p class="missing-data">Not available yet: {{ readiness.missing|join(', ') }}.</p>{% endif %}
+      <a class="readiness-recovery-link" href="#recovery">Open Body &amp; Recovery <span aria-hidden="true">→</span></a>
     </aside>
   </div>
 
-  <div class="companion-grid">
-    <section class="card goal-card" id="goal-center">
-      <div class="section-heading"><div><p class="eyebrow">PRIORITY RACE</p><h2>{{ race_goal.race.name if race_goal else 'Set your goal race' }}</h2></div>{% if race_goal %}<span class="chrome-chip">{{ race_goal.phase }}</span>{% endif %}</div>
-      {% if race_goal %}<div class="goal-stats"><div><small>COUNTDOWN</small><strong>{{ race_goal.days }} days</strong></div><div><small>TARGET PACE</small><strong>{{ race_goal.target_pace or 'Not set' }}</strong></div></div>
-      {% if race_goal.prediction %}<p><b>Calculated finish range:</b> {{ race_goal.prediction.low_min }}–{{ race_goal.prediction.high_min }} minutes · {{ race_goal.prediction.confidence }} confidence.</p><p class="caption">{{ race_goal.prediction.explanation }}</p>{% else %}<p class="empty">A prediction needs a race distance and recent runs.</p>{% endif %}
-      <p><b>Pacing:</b> {{ race_goal.pacing }}</p><ul>{% for item in race_goal.checklist %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p class="empty">Add a priority race with a distance and optional target time.</p>{% endif %}
-      <form method="post" action="{{ url_for('add_race') }}" class="mini-form"><input type="date" name="date" required><input name="name" placeholder="Race name" required><input type="number" name="distance_km" step="0.1" min="0" placeholder="Distance km"><input type="number" name="target_time_min" step="0.1" min="0" placeholder="Goal minutes"><label class="check"><input type="checkbox" name="priority" checked> Priority</label><button type="submit">Save goal</button></form>
-    </section>
-    <section class="card records-card"><div class="section-heading"><div><p class="eyebrow">PERSONAL RECORDS</p><h2>Calculated achievements</h2></div></div><div class="record-list">{% for record in personal_records.records %}<div><span>{{ record.label }}<small>{{ record.kind }}</small></span><strong>{{ record.value }}</strong></div>{% endfor %}</div>{% for line in personal_records.unavailable %}<p class="missing-data">{{ line }}</p>{% endfor %}</section>
-  </div>
+  {% if runs %}
+  <section class="summary-strip" aria-label="Recent training summary">
+    <article><span>Distance in loaded runs</span><strong>{{ total_distance }} km</strong><small>{{ run_count }} activities</small></article>
+    <article><span>Average pace</span><strong>{{ avg_pace }}</strong><small>Across loaded activities</small></article>
+    <article><span>Current recommendation</span><strong>{{ readiness.status }}</strong><small>Based on training load and check-ins</small></article>
+  </section>
+  {% endif %}
 
-  <section class="card" id="plan-actual"><div class="section-heading"><div><p class="eyebrow">PLAN VS ACTUAL</p><h2>This training week</h2></div></div><div class="week-comparison">{% for day in plan_actual.days %}<article class="plan-day {{ day.status|lower }}"><small>{{ day.date.strftime('%a') }}</small><strong>{{ day.planned }}</strong><span>{{ day.run.distance_km ~ ' km logged' if day.run else day.status }}</span></article>{% endfor %}</div><div class="adjustment-note"><b>Schedule adjustment</b>{% for note in plan_actual.adjustments %}<p>{{ note }}</p>{% endfor %}</div></section>
+  <section class="card" id="plan-actual">
+    <div class="section-heading"><div><p class="section-kicker">Weekly plan</p><h2>This training week</h2><p class="section-description">Planned sessions compared with what you logged.</p></div></div>
+    <div class="week-comparison">{% for day in plan_actual.days %}<article class="plan-day {{ day.status|lower }}"><small>{{ day.date.strftime('%a') }}</small><strong>{{ day.planned }}</strong><span>{{ day.run.distance_km ~ ' km logged' if day.run else day.status }}</span></article>{% endfor %}</div>
+    <div class="adjustment-note"><b>Suggested adjustment</b>{% for note in plan_actual.adjustments %}<p>{{ note }}</p>{% endfor %}</div>
+  </section>
 
   {% if runs %}
   <section class="card compact-run-panel" id="activity-analysis" data-run-panel data-default-limit="4">
     <div class="compact-panel-heading">
-      <div><p class="eyebrow">RUN ANALYSIS</p><h2>Activity details</h2><p class="compact-summary">Showing recent activities first.</p></div>
-      <div class="panel-tools"><label class="run-search"><span class="sr-only">Search activities</span><input type="search" placeholder="Search date, source, or distance" data-run-search></label><button class="panel-toggle" type="button" data-panel-toggle aria-expanded="false">Show all</button></div>
+      <div><p class="section-kicker">Recent activities</p><h2>Find a run</h2><p class="compact-summary">Open any activity for a closer look at the data available.</p></div>
+      <div class="panel-tools"><label class="run-search"><span class="sr-only">Search activities</span><input type="search" placeholder="Search date, source, pace, or distance" data-run-search></label><button class="panel-toggle" type="button" data-panel-toggle aria-expanded="false">Show all</button></div>
     </div>
     <div class="analysis-links compact-run-list" data-run-list>
-      {% for run in runs %}<a data-run-item data-search="{{ run.date }} {{ run.source }} {{ run.distance_km }} km" href="{{ url_for('run_detail', run_id=run.id) }}"><span>{{ run.date }} · {{ run.source|title }} · {{ run.distance_km }} km</span><b>Analyze →</b></a>{% endfor %}
+      {% for run in runs %}<a data-run-item data-search="{{ run.date }} {{ run.source }} {{ run.distance_km }} km {{ run.pace_str }}" href="{{ url_for('run_detail', run_id=run.id) }}"><span><b>{{ run.date }}</b><small>{{ run.source|title }} · {{ run.pace_str }}</small></span><strong>{{ run.distance_km }} km <i>View</i></strong></a>{% endfor %}
     </div>
     <p class="panel-empty" data-panel-empty hidden>No runs match that search.</p>
   </section>
   {% endif %}
 
-  <section class="card" id="shoes"><div class="section-heading"><div><p class="eyebrow">SHOE TRACKING</p><h2>Your rotation</h2></div></div><form method="post" action="{{ url_for('add_shoe') }}" class="shoe-form"><input name="brand" required maxlength="80" placeholder="Brand"><input name="model" required maxlength="80" placeholder="Model"><input name="nickname" maxlength="80" placeholder="Nickname"><input type="date" name="purchase_date"><input type="number" name="replacement_km" min="1" max="5000" step="1" placeholder="Replace at km"><button type="submit">Add shoe</button></form>
-      {% if shoes %}<div class="shoe-list">{% for item in shoes %}<article><div><small>{{ 'RETIRED' if item.shoe.retired else 'ACTIVE' }}</small><h3>{{ item.shoe.nickname or item.shoe.brand ~ ' ' ~ item.shoe.model }}</h3><p>{{ item.shoe.brand }} {{ item.shoe.model }} · {{ item.mileage_km }} assigned km</p>{% if item.average_pace is not none %}<p>Observed avg pace: {{ item.average_pace }} min/km{% if item.average_soreness is not none %} · soreness {{ item.average_soreness }}/5{% endif %} (association only)</p>{% endif %}{% if item.replacement_percent is not none %}<div class="shoe-meter"><i style="width:{{ [item.replacement_percent, 100]|min }}%"></i></div><span>{{ item.replacement_percent }}% of selected replacement distance</span>{% endif %}</div>{% if not item.shoe.retired %}<form method="post" action="{{ url_for('retire_shoe', shoe_id=item.shoe.id) }}"><button class="link-button">Retire</button></form>{% endif %}</article>{% endfor %}</div>
-    {% if runs %}<details class="shoe-assignments"><summary>Assign shoes to activities</summary>{% for run in runs %}<form method="post" action="{{ url_for('assign_run_shoe', run_id=run.id) }}"><span>{{ run.date }} · {{ run.distance_km }} km</span><select name="shoe_id">{% for item in shoes if not item.shoe.retired %}<option value="{{ item.shoe.id }}" {{ 'selected' if shoe_assignments.get(run.id) == item.shoe.id }}>{{ item.shoe.nickname or item.shoe.model }}</option>{% endfor %}</select><button type="submit">Assign</button></form>{% endfor %}</details>{% endif %}
+  <div class="dashboard-secondary-heading"><div><p class="section-kicker">More from your training</p><h2>Planning, records, and long-term context</h2></div><p>Open only the tools you need. Your data, forms, and saved history remain available below.</p></div>
+
+  <div class="companion-grid">
+    <section class="card goal-card" id="goal-center">
+      <div class="section-heading"><div><p class="section-kicker">Race goal</p><h2>{{ race_goal.race.name if race_goal else 'Choose a priority race' }}</h2></div>{% if race_goal %}<span class="tag">{{ race_goal.phase }}</span>{% endif %}</div>
+      {% if race_goal %}<div class="goal-stats"><div><small>Race day</small><strong>{{ race_goal.days }} days away</strong></div><div><small>Target pace</small><strong>{{ race_goal.target_pace or 'Not set' }}</strong></div></div>
+      {% if race_goal.prediction %}<p><b>Calculated finish range:</b> {{ race_goal.prediction.low_min }}–{{ race_goal.prediction.high_min }} minutes with {{ race_goal.prediction.confidence }} confidence.</p><p class="caption">{{ race_goal.prediction.explanation }}</p>{% else %}<p class="empty">Add a race distance and recent runs to calculate a finish range.</p>{% endif %}
+      <p><b>Pacing approach:</b> {{ race_goal.pacing }}</p><ul>{% for item in race_goal.checklist %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p class="empty">Set a race date, distance, and optional goal time.</p>{% endif %}
+      <form method="post" action="{{ url_for('add_race') }}" class="mini-form">
+        <label><span>Date</span><input type="date" name="date" required></label><label><span>Race name</span><input name="name" placeholder="Event name" required></label><label><span>Distance</span><input type="number" name="distance_km" step="0.1" min="0" placeholder="km"></label><label><span>Goal time</span><input type="number" name="target_time_min" step="0.1" min="0" placeholder="minutes"></label><label class="check"><input type="checkbox" name="priority" checked> Priority race</label><button type="submit">Save race goal</button>
+      </form>
+    </section>
+    <section class="card records-card" id="personal-records"><div class="section-heading"><div><p class="section-kicker">Personal bests</p><h2>From your loaded runs</h2></div></div><div class="record-list">{% for record in personal_records.records %}<div><span>{{ record.label }}<small>{{ record.kind }}</small></span><strong>{{ record.value }}</strong></div>{% endfor %}</div>{% for line in personal_records.unavailable %}<p class="missing-data">{{ line }}</p>{% endfor %}</section>
+  </div>
+
+  <section class="card" id="calendar">
+    <div class="section-heading"><div><p class="section-kicker">Training calendar</p><h2>{{ month_label }}</h2></div><div class="calendar-nav"><a href="{{ url_for('index', year=prev_year, month=prev_month) }}#calendar">Previous</a><a href="{{ url_for('index') }}#calendar">Today</a><a href="{{ url_for('index', year=next_year, month=next_month) }}#calendar">Next</a></div></div>
+    <div class="table-wrap" role="region" aria-label="Training calendar" tabindex="0"><table class="calendar"><thead><tr><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead><tbody>{% for week in calendar_weeks %}<tr>{% for day in week %}<td class="cal-day{% if not day.in_month %} out-of-month{% endif %}{% if day.is_today %} today{% endif %}{% if day.race %} race-day{% endif %}"><div class="cal-date">{{ day.date.day }}</div>{% if day.race %}<div class="cal-race">{{ day.race.name }}</div>{% endif %}{% if day.run %}<div class="cal-run">{{ day.run.distance_km }} km</div>{% elif day.suggested %}<div class="cal-suggested">{{ day.suggested }}</div>{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+  </section>
+
+  <section class="card" id="shoes">
+    <div class="section-heading"><div><p class="section-kicker">Shoes</p><h2>Your rotation</h2><p class="section-description">Track assigned distance and replacement mileage.</p></div></div>
+    <form method="post" action="{{ url_for('add_shoe') }}" class="shoe-form"><label><span>Brand</span><input name="brand" required maxlength="80"></label><label><span>Model</span><input name="model" required maxlength="80"></label><label><span>Nickname</span><input name="nickname" maxlength="80" placeholder="Optional"></label><label><span>Purchase date</span><input type="date" name="purchase_date"></label><label><span>Replace after</span><input type="number" name="replacement_km" min="1" max="5000" step="1" placeholder="km"></label><button type="submit">Add shoe</button></form>
+    {% if shoes %}<div class="shoe-list">{% for item in shoes %}<article><div><small>{{ 'Retired' if item.shoe.retired else 'Active' }}</small><h3>{{ item.shoe.nickname or item.shoe.brand ~ ' ' ~ item.shoe.model }}</h3><p>{{ item.shoe.brand }} {{ item.shoe.model }} · {{ item.mileage_km }} assigned km</p>{% if item.average_pace is not none %}<p>Observed average: {{ item.average_pace }} min/km{% if item.average_soreness is not none %} · soreness {{ item.average_soreness }}/5{% endif %}. This is an association, not a cause.</p>{% endif %}{% if item.replacement_percent is not none %}<div class="shoe-meter"><i style="width:{{ [item.replacement_percent, 100]|min }}%"></i></div><span>{{ item.replacement_percent }}% of your replacement distance</span>{% endif %}</div>{% if not item.shoe.retired %}<form method="post" action="{{ url_for('retire_shoe', shoe_id=item.shoe.id) }}"><button class="link-button">Retire</button></form>{% endif %}</article>{% endfor %}</div>
+    {% if runs %}<details class="shoe-assignments"><summary>Assign shoes to activities</summary>{% for run in runs %}<form method="post" action="{{ url_for('assign_run_shoe', run_id=run.id) }}"><span>{{ run.date }} · {{ run.distance_km }} km</span><select name="shoe_id" aria-label="Shoe for {{ run.date }}">{% for item in shoes if not item.shoe.retired %}<option value="{{ item.shoe.id }}" {{ 'selected' if shoe_assignments.get(run.id) == item.shoe.id }}>{{ item.shoe.nickname or item.shoe.model }}</option>{% endfor %}</select><button type="submit">Assign</button></form>{% endfor %}</details>{% endif %}
     {% else %}<p class="empty">No shoes added yet.</p>{% endif %}
   </section>
 
-  <section class="card" id="recovery-timeline"><div class="section-heading"><div><p class="eyebrow">RECOVERY TIMELINE</p><h2>Symptoms over time</h2></div><a class="chrome-chip" href="{{ url_for('export_recovery') }}">Export summary</a></div>{% if recovery_trends.areas %}<div class="trend-list">{% for item in recovery_trends.areas %}<div><span>{{ item.area }}<small>{{ item.entries }} check-in(s)</small></span><strong class="trend-{{ item.trend|lower }}">{{ item.latest }}/10 · {{ item.trend }}</strong></div>{% endfor %}</div>{% else %}<p class="empty">Complete a Body & Recovery check-in to start a timeline.</p>{% endif %}{% for checkin in recovery_checkins %}<form method="post" action="{{ url_for('recovery_adherence', checkin_id=checkin.id) }}" class="adherence-form"><span>{{ checkin.created_at[:10] }} · {{ checkin.body_areas|join(', ')|replace('_', ' ') }}</span><select name="adherence"><option value="followed" {{ 'selected' if checkin.adherence == 'followed' }}>Followed</option><option value="partial" {{ 'selected' if checkin.adherence == 'partial' }}>Partially followed</option><option value="not_followed" {{ 'selected' if checkin.adherence == 'not_followed' }}>Not followed</option></select><button type="submit">Update</button></form>{% endfor %}</section>
+  <section class="card" id="recovery-timeline">
+    <div class="section-heading"><div><p class="section-kicker">Recovery history</p><h2>Symptoms over time</h2></div><a class="text-action" href="{{ url_for('export_recovery') }}">Export summary</a></div>
+    {% if recovery_trends.areas %}<div class="trend-list">{% for item in recovery_trends.areas %}<div><span>{{ item.area }}<small>{{ item.entries }} check-in(s)</small></span><strong class="trend-{{ item.trend|lower }}">{{ item.latest }}/10 · {{ item.trend }}</strong></div>{% endfor %}</div>{% else %}<p class="empty">Complete a Body & Recovery check-in to start a timeline.</p>{% endif %}
+    {% for checkin in recovery_checkins %}<form method="post" action="{{ url_for('recovery_adherence', checkin_id=checkin.id) }}" class="adherence-form"><span>{{ checkin.created_at[:10] }} · {{ checkin.body_areas|join(', ')|replace('_', ' ') }}</span><select name="adherence" aria-label="Plan follow-through"><option value="followed" {{ 'selected' if checkin.adherence == 'followed' }}>Followed</option><option value="partial" {{ 'selected' if checkin.adherence == 'partial' }}>Partially followed</option><option value="not_followed" {{ 'selected' if checkin.adherence == 'not_followed' }}>Not followed</option></select><button type="submit">Update</button></form>{% endfor %}
+  </section>
 </section>

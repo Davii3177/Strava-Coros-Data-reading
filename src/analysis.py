@@ -62,31 +62,30 @@ def generate_feedback(runs: list[Run]) -> list[str]:
     feedback = []
     mileage = weekly_mileage_km(runs)
     paces = [r.avg_pace_min_km for r in runs]
-    hrs = [r.avg_hr for r in runs]
+    hrs = [r.avg_hr for r in runs if r.avg_hr > 0]
 
     if mileage > 0:
-        feedback.append(f"Total distance in this set: {mileage} km across {len(runs)} runs.")
+        feedback.append(f"Across the {len(runs)} loaded runs, you covered {mileage} km.")
 
     pace_spread = max(paces) - min(paces)
     if pace_spread < 0.3:
         feedback.append(
-            "Your pace is very consistent across runs — consider adding a dedicated "
-            "easy day or a tempo/interval session to build a wider training stimulus."
+            f"Pace varied by only {pace_spread:.2f} min/km across the loaded runs. "
+            "If these were meant to serve different purposes, make easy days easier before adding more intensity."
         )
     else:
-        feedback.append("Good pace variety across easy and harder efforts.")
+        feedback.append(f"Pace spans {pace_spread:.2f} min/km across the loaded runs, showing a mix of effort levels.")
 
-    if max(hrs) - min(hrs) < 10:
+    if len(hrs) >= 2 and max(hrs) - min(hrs) < 10:
         feedback.append(
-            "Heart rate is barely varying between runs — most of your training may be "
-            "happening in the same zone. Mixing in true easy (lower HR) days helps recovery."
+            f"Average heart rate varies by {max(hrs) - min(hrs)} bpm across runs with heart-rate data. "
+            "That may mean several sessions landed at a similar effort, so keep recovery runs clearly easy."
         )
 
     long_run = max(runs, key=lambda r: r.distance_km)
     if long_run.distance_km >= 1.5 * (mileage / len(runs)):
         feedback.append(
-            f"Your longest run ({long_run.distance_km} km) stands out from the rest — "
-            "good long-run structure."
+            f"Your longest run was {long_run.distance_km} km, at least 50% longer than the average loaded run."
         )
 
     return feedback
