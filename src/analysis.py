@@ -19,11 +19,11 @@ BASE_WEEKLY_SCHEDULE = {
     6: "Rest",
 }
 TAPER_WEEKLY_SCHEDULE = {
-    0: "Easy run",
-    1: "Rest",
-    2: "Easy run",
-    3: "Rest",
-    4: "Rest",
+    0: "Easy run (taper)",
+    1: "Easy run (taper)",
+    2: "Easy run (taper)",
+    3: "Easy run (taper)",
+    4: "Easy run (taper)",
     5: "Easy run (taper)",
     6: "Rest",
 }
