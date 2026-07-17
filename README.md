@@ -4,7 +4,7 @@ Gaman is a password-protected running dashboard that brings Strava and Coros act
 
 ## Live app
 
-**[strava-coros-data-reading.onrender.com](https://strava-coros-data-reading.onrender.com/)**
+**[www.gamanrun.com](https://www.gamanrun.com/)**
 
 The hosted app is password-protected. Ask the owner for access.
 
@@ -103,11 +103,13 @@ Check-ins are stored locally in `data/recovery_checkins.json`.
 
 ## Ask Gaman (optional chat assistant)
 
-Ask Gaman is a chat assistant available from a launcher on every authenticated
-dashboard page. Each question is sent to Google's Gemini API together with a
-compact, grounded snapshot of the runner's own data — readiness, recent runs,
-weekly load, today's recommended session, an upcoming race, and recovery trends
-— so answers reference real numbers rather than generic advice.
+Ask Gaman is a chat assistant available from a compact floating icon launcher on
+every authenticated dashboard page. Each question is sent to Google's Gemini API
+together with a compact, grounded snapshot of the runner's own data — readiness,
+recent runs, weekly load, today's recommended session, an upcoming race, and
+recovery trends — so answers reference real numbers rather than generic advice.
+Answers are kept short (a one-line recommendation plus a few bullets) and
+rendered with basic Markdown (bold, lists) instead of raw formatting characters.
 
 To enable it, set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default
 `gemini-flash-lite-latest`) in `.env`. The `POST /api/ask` endpoint:
@@ -131,7 +133,8 @@ read only on the server.
 - Plotly charts
 - Strava API integration
 - Coros client scaffold with sample-data fallback
-- scikit-learn workout model
+- Pure-Python trained workout model (in-house ordinary-least-squares fit, no external ML dependency)
+- Optional OpenAI and Google Gemini API integrations (recovery education and Ask Gaman)
 - JSON-backed local storage
 - Vanilla JavaScript and responsive CSS
 - Gunicorn and Render deployment
@@ -178,6 +181,8 @@ The default local address is `http://127.0.0.1:8502/`. When neither Strava nor C
 | `COROS_CLIENT_SECRET` | No | Reserved for Coros integration |
 | `OPENAI_API_KEY` | No | Enables optional AI-expanded recovery education |
 | `OPENAI_MODEL` | No | Selects the optional server-side model; defaults to `gpt-4o-mini` |
+| `GEMINI_API_KEY` | No | Enables the optional Ask Gaman chat assistant |
+| `GEMINI_MODEL` | No | Selects the Ask Gaman model; defaults to `gemini-flash-lite-latest` |
 | `PORT` | No | Overrides the local server port |
 
 Never expose API credentials in templates or client-side JavaScript.
@@ -215,6 +220,10 @@ The included `render.yaml` can deploy the Flask app to Render. Configure `APP_PA
 
 Render's free filesystem is ephemeral. Saved races, workout feedback, and recovery check-ins in `data/*.json` may reset after redeployment or service replacement. The free service can also take roughly 30-60 seconds to wake after inactivity.
 
+### Custom domain
+
+`www.gamanrun.com` is configured as a custom domain on the Render service, with DNS managed at the registrar/DNS provider pointing a `CNAME` at the Render hostname. Render auto-verifies the domain and issues a free TLS certificate once DNS resolves correctly.
+
 ### Current data limitations
 
 The unified activity model currently includes date, source, distance, duration, average heart rate, average pace, and elevation gain. Split-level pace, cadence, HRV, resting heart rate, sleep, and detailed elevation streams are shown as unavailable until their source integrations provide them. Gaman does not fabricate these fields. Coros production authentication remains a roadmap item, and the current Coros client uses sample activities.
@@ -228,7 +237,8 @@ The unified activity model currently includes date, source, distance, duration, 
 - [x] Race calendar and tapering logic
 - [x] Detailed Body & Recovery check-ins
 - [x] Optional AI-expanded recovery education
-- [x] Render deployment configuration
+- [x] Ask Gaman chat assistant (Gemini-powered)
+- [x] Render deployment configuration with a custom domain
 - [ ] Production Coros API authentication and activity fetching
 - [ ] Durable production database storage
 
