@@ -1,6 +1,6 @@
-# Gaman AI
+# Gaman
 
-Gaman AI is a password-protected running dashboard that brings Strava and Coros activity data into one focused experience. It combines transparent training analysis, adaptive workout suggestions, race planning, subjective run feedback, and educational recovery check-ins.
+Gaman is a password-protected running dashboard that brings Strava and Coros activity data into one focused experience. It combines transparent training analysis, adaptive workout suggestions, race planning, subjective run feedback, and educational recovery check-ins.
 
 ## Live app
 
@@ -34,28 +34,28 @@ The hosted app is password-protected. Ask the owner for access.
 
 ## Editorial trail-running experience
 
-The interface was redesigned and renamed from **Run Coach** to **Gaman AI**.
+The interface was redesigned and renamed from **Run Coach** to **Gaman**.
 
 - The authenticated product is organized into five focused areas: **Overview**, **Training**, **Activities**, **Body & Recovery**, and **Profile**. Every previous tool remains available, but unrelated workflows no longer compete on one long page.
 - **Overview** prioritizes Today's Run, readiness, weekly mileage, and the recommendation evidence. **Training** contains the weekly plan, race goal, records, calendar, pace trend, suggested sessions, and race management.
 - **Activities** contains searchable run details, the complete activity table, saved feedback, dismissal, deletion, and seven-day prompt expiry. **Body & Recovery** owns the anatomy selector, symptom form, guidance, history, adherence, and export. **Profile** contains connection status, shoes, assignments, privacy, and contact information.
 - Real running data—including pace, distance, heart rate, elevation, shoes, race countdowns, and recovery trends—provides the visual focus.
 - Recommendations use short, specific language and show the data behind the suggestion. Measured facts, estimates, and coaching guidance remain clearly distinguished.
-- An intentionally restrained palette uses white and warm-grey surfaces, charcoal text, and a small amount of purple for emphasis.
-- Times New Roman is used for editorial display headings, while a standard system sans-serif keeps body copy, controls, and metrics familiar and readable.
+- An intentionally restrained palette uses white and warm-grey surfaces, charcoal text, and a small amount of purple for emphasis, with distinct green, amber, and red status colors so success, caution, and danger states are readable at a glance.
+- Typography pairs two self-hosted webfonts (no third-party CDN): **Instrument Serif** for editorial display headings and **Geist** for body copy, controls, and tabular metrics. The `woff2` files live under `src/static/fonts/`.
 - Original cinematic trail-running imagery gives the product a distinctive identity without distracting from the data.
 - The responsive light theme retains readable contrast, keyboard focus styles, reduced-motion support, and clear status colors.
 - Consistent spacing, borders, and icons keep the expressive visual language practical. Motion is limited to useful feedback such as loading, progress, and state changes.
 - Desktop navigation uses a stable product sidebar. Mobile navigation uses a compact five-destination bottom bar with a visible active state.
 - Search, compact views, and collapsible sections keep detailed tools available without overwhelming the main dashboard. Activity Details shows four runs and Run Feedback shows three prompts by default; both support search and Show all/less controls, while feedback deletion, dismissal, and seven-day prompt expiry remain intact.
 - The landing page uses a concise white header and full-bleed cinematic imagery, with one headline, one supporting sentence, and a single Open Dashboard button that reveals a compact password dialog.
-- The landing page contains one concise hero, three benefits, a short workflow preview, safety boundaries, a detailed About section, and a footer. The complete technical explanation now lives at `/how-it-works`.
-- The authenticated product shares one editorial system: white and warm-gray surfaces, charcoal text, restrained purple interaction states, consistent 14px cards, system-sans controls, and serif only for major page titles.
+- The landing page contains one concise hero, a "real Tuesday" narrative section paired with a live-styled product preview card (instead of generic numbered feature tiles), a short workflow preview, safety boundaries, a detailed About section, and a footer. The complete technical explanation now lives at `/how-it-works`.
+- The authenticated product shares one editorial system: white and warm-gray surfaces, charcoal text, restrained purple interaction states, consistent cards, Geist controls, and Instrument Serif for major page titles.
 - Landing, About, dashboard, run-detail, and recovery interfaces share the same responsive light system, visible keyboard focus, and reduced-motion behavior.
 
 ### Image assets and visual direction
 
-The following project-local assets are original images generated for Gaman AI using the built-in OpenAI image generation workflow. They are stored under `src/static/images`:
+The following project-local assets are original images generated for Gaman using the built-in OpenAI image generation workflow. They are stored under `src/static/images`:
 
 - `gaman-mountain-road-hero.jpg`
 - `gaman-mountain-valley.jpg`
@@ -64,12 +64,11 @@ The following project-local assets are original images generated for Gaman AI us
 
 ### Hero video
 
-The owner-supplied `0716.mp4` is represented by two local, silent, 16-second 1080p web variants:
+The owner-supplied hero footage is served in full quality and full length (33 seconds) as:
 
-- `src/static/videos/gaman-0716-hero.webm`
-- `src/static/videos/gaman-0716-hero.mp4`
+- `src/static/videos/gaman-0716-hero-full.mp4`
 
-The WebM source is preferred where supported, MP4 is the compatibility fallback, and the poster is used for reduced-motion preferences, small screens, and data-saver connections. Both video files are local, so the homepage has no third-party media dependency.
+The poster (`gaman-0716-poster-v2.jpg`) is used for reduced-motion preferences, small screens, and data-saver connections. The video file is local, so the homepage has no third-party media dependency.
 
 [WallpaperSafari's Vintage Aesthetic Landscape collection](https://wallpapersafari.com/vintage-aesthetic-landscape-wallpapers/) was used only as visual direction. No WallpaperSafari-hosted image is integrated into the project because its [copyright policy](https://wallpapersafari.com/page/copyright-policy/) requires permission from the relevant creator and its [terms of service](https://wallpapersafari.com/page/terms-of-service/) prohibit integrating hosted files without express written permission.
 
@@ -86,7 +85,7 @@ Users can select multiple regions, specify left/right/both/center, add an exact-
 
 ### Recovery safety
 
-Gaman AI provides educational information, not a diagnosis or medical treatment. It does not replace a clinician, physical therapist, athletic trainer, or emergency service.
+Gaman provides educational information, not a diagnosis or medical treatment. It does not replace a clinician, physical therapist, athletic trainer, or emergency service.
 
 Red-flag answers such as chest pain, breathing trouble, severe pain, new numbness or weakness, deformity, or inability to bear weight bypass ordinary guidance and display an urgent in-person care recommendation.
 
@@ -140,7 +139,7 @@ Check-ins are stored locally in `data/recovery_checkins.json`.
    python app.py
    ```
 
-The default local address is `http://127.0.0.1:8502/`. When neither Strava nor Coros is connected, Gaman AI uses clearly labeled sample activities so the dashboard remains usable. Sample activities are never mixed into a connected user's real metrics.
+The default local address is `http://127.0.0.1:8502/`. When neither Strava nor Coros is connected, Gaman uses clearly labeled sample activities so the dashboard remains usable. Sample activities are never mixed into a connected user's real metrics.
 
 ## Environment variables
 
@@ -194,11 +193,11 @@ Render's free filesystem is ephemeral. Saved races, workout feedback, and recove
 
 ### Current data limitations
 
-The unified activity model currently includes date, source, distance, duration, average heart rate, average pace, and elevation gain. Split-level pace, cadence, HRV, resting heart rate, sleep, and detailed elevation streams are shown as unavailable until their source integrations provide them. Gaman AI does not fabricate these fields. Coros production authentication remains a roadmap item, and the current Coros client uses sample activities.
+The unified activity model currently includes date, source, distance, duration, average heart rate, average pace, and elevation gain. Split-level pace, cadence, HRV, resting heart rate, sleep, and detailed elevation streams are shown as unavailable until their source integrations provide them. Gaman does not fabricate these fields. Coros production authentication remains a roadmap item, and the current Coros client uses sample activities.
 
 ## Project status
 
-- [x] Gaman AI responsive dashboard and startup experience
+- [x] Gaman responsive dashboard and startup experience
 - [x] Strava authorization and activity fetching
 - [x] Rule-based training analysis and workout generation
 - [x] Feedback-trained workout adjustment

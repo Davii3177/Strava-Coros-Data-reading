@@ -3,52 +3,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gaman AI - Run with clarity</title>
-  <meta name="description" content="Gaman AI turns Strava and Coros activity data into a practical daily running plan, training context, and recovery check-ins.">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='editorial-20260716') }}">
+  <title>Gaman - Run today, or rest?</title>
+  <meta name="description" content="Gaman turns Strava and Coros activity data into a practical daily running plan, training context, and recovery check-ins.">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='fixes-20260716') }}">
 </head>
 <body class="landing-body">
   <a class="skip-link" href="#home">Skip to content</a>
   <header class="landing-header">
-    <a class="landing-wordmark" href="#home" aria-label="Gaman AI home">Gaman AI</a>
+    <a class="landing-wordmark" href="#home" aria-label="Gaman home">Gaman</a>
     <nav class="landing-nav" aria-label="Landing page navigation"><a href="#home">Home</a><a href="#about">About</a><a href="{{ url_for('how_it_works_page') }}">How it works</a><a href="#access" data-login-open>Sign in</a></nav>
   </header>
 
   <main class="landing-shell">
     <section class="landing-hero" id="home" aria-labelledby="landing-title">
-      <video class="landing-hero-media" autoplay muted loop playsinline preload="metadata" poster="{{ url_for('static', filename='images/gaman-0716-poster.jpg') }}" aria-hidden="true">
-        <source src="{{ url_for('static', filename='videos/gaman-0716-hero.webm') }}" type="video/webm">
-        <source src="{{ url_for('static', filename='videos/gaman-0716-hero.mp4') }}" type="video/mp4">
+      <video class="landing-hero-media" autoplay muted loop playsinline preload="metadata" poster="{{ url_for('static', filename='images/gaman-0716-poster-v2.jpg') }}" aria-hidden="true">
+        <source src="{{ url_for('static', filename='videos/gaman-0716-hero-full.mp4') }}" type="video/mp4">
       </video>
-      <div class="landing-content"><h1 id="landing-title">Run with clarity</h1><p class="landing-copy">Turn the training data you already create<br>into one clear plan for today.</p><button class="landing-open-dashboard" type="button" data-login-open>Open dashboard</button></div>
+      <div class="landing-content"><h1 id="landing-title">Run today, or rest?</h1><p class="landing-copy">Slept badly and the plan says intervals? Gaman checks your last seven days and tells you which one to trust.</p><button class="landing-open-dashboard" type="button" data-login-open>Open dashboard</button></div>
     </section>
 
     <section class="landing-benefits" aria-labelledby="benefits-title">
-      <header><p class="section-kicker">Built for the decisions between runs</p><h2 id="benefits-title">Less dashboard noise. More useful direction.</h2></header>
-      <div class="landing-benefit-grid">
-        <article data-about-benefit><span>01</span><h3>Know today’s work</h3><p>See one recommended session and the evidence behind it.</p></article>
-        <article data-about-benefit><span>02</span><h3>Read the week</h3><p>Compare recent load, pace, goals, and completed mileage.</p></article>
-        <article data-about-benefit><span>03</span><h3>Respect recovery</h3><p>Record symptoms and receive conservative educational guidance.</p></article>
+      <div class="landing-benefits-layout">
+        <div class="landing-benefits-copy">
+          <p class="section-kicker">A real Tuesday, not a demo</p>
+          <h2 id="benefits-title">Sore quads. A race in six weeks. Two easy runs already banked this week.</h2>
+          <p>That’s the input. Gaman turns it into one session, one number, and the reasoning behind both — not a dashboard you have to interpret yourself.</p>
+        </div>
+        <article class="landing-preview-card" aria-hidden="true">
+          <div class="section-heading"><div><p class="section-kicker">Today’s run</p><h3>Tempo &middot; 8 &times; 4 min</h3></div><span class="status-pill ready">Ready to train</span></div>
+          <div class="landing-preview-stats">
+            <div><small>Distance</small><strong>13.2 km</strong></div>
+            <div><small>Duration</small><strong>52 min</strong></div>
+            <div><small>Target effort</small><strong>Comfortably hard</strong></div>
+          </div>
+          <p class="landing-preview-note">Last 7 days sit 12% below your typical week, so the load can absorb one harder session.</p>
+        </article>
       </div>
     </section>
 
     <section class="landing-how-preview" aria-labelledby="how-preview-title">
-      <div><p class="section-kicker">How Gaman AI works</p><h2 id="how-preview-title">Your activity becomes a decision you can inspect.</h2><p>Measured activity data feeds transparent calculations, runner feedback adds context, and optional model guidance stays clearly labeled.</p><a class="editorial-link" href="{{ url_for('how_it_works_page') }}">See the complete method</a></div>
-      <ol class="method-track" aria-label="Gaman AI workflow"><li><b>01</b><span>Import</span><small>Strava or Coros</small></li><li><b>02</b><span>Compare</span><small>Load and history</small></li><li><b>03</b><span>Recommend</span><small>One practical action</small></li><li><b>04</b><span>Reflect</span><small>Your feedback</small></li></ol>
+      <div><p class="section-kicker">How Gaman works</p><h2 id="how-preview-title">Your activity becomes a decision you can inspect.</h2><p>Measured activity data feeds transparent calculations, runner feedback adds context, and optional model guidance stays clearly labeled.</p><a class="editorial-link" href="{{ url_for('how_it_works_page') }}">See the complete method</a></div>
+      <ol class="method-track" aria-label="Gaman workflow"><li><b>01</b><span>Import</span><small>Strava or Coros</small></li><li><b>02</b><span>Compare</span><small>Load and history</small></li><li><b>03</b><span>Recommend</span><small>One practical action</small></li><li><b>04</b><span>Reflect</span><small>Your feedback</small></li></ol>
     </section>
 
-    <section class="landing-safety" aria-labelledby="safety-title"><p class="section-kicker">Clear boundaries</p><h2 id="safety-title">Evidence where it exists. Honest limits where it does not.</h2><p>Gaman AI labels measured data, calculated estimates, rule-based coaching, and optional language-model guidance separately. Recovery support is educational and never a diagnosis. Urgent symptoms are directed to in-person care.</p></section>
+    <section class="landing-safety" aria-labelledby="safety-title"><p class="section-kicker">Clear boundaries</p><h2 id="safety-title">Evidence where it exists. Honest limits where it does not.</h2><p>Gaman labels measured data, calculated estimates, rule-based coaching, and optional language-model guidance separately. Recovery support is educational and never a diagnosis. Urgent symptoms are directed to in-person care.</p></section>
 
     <section class="landing-about" id="about" aria-labelledby="about-title">
-      <div class="landing-about-intro"><p class="section-kicker">About Gaman AI</p><h2 id="about-title">A running workspace built around the data you already create.</h2><p>Gaman AI brings activities, goals, workout feedback, shoes, and recovery check-ins into one focused system. It helps runners understand today’s session without hiding the calculations or pretending unavailable measurements exist.</p><p>The product combines direct activity measurements, transparent training-load rules, an inspectable feedback model, and conservative recovery safeguards. Each system has a defined job, and you can read the complete method before trusting a recommendation.</p></div>
-      <figure class="landing-about-photo"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="A trail leading through a misty mountain valley" loading="lazy"><figcaption>Train for the long view.</figcaption></figure>
+      <div class="landing-about-intro"><p class="section-kicker">About Gaman</p><h2 id="about-title">A running workspace built around the data you already create.</h2><p>Gaman brings activities, goals, workout feedback, shoes, and recovery check-ins into one focused system. It helps runners understand today’s session without hiding the calculations or pretending unavailable measurements exist.</p><p>The product combines direct activity measurements, transparent training-load rules, an inspectable feedback model, and conservative recovery safeguards. Each system has a defined job, and you can read the complete method before trusting a recommendation.</p></div>
+      <figure class="landing-about-photo"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="A trail leading through a misty mountain valley" loading="lazy"></figure>
     </section>
   </main>
 
-  <footer class="landing-footer"><a class="landing-wordmark" href="#home">Gaman AI</a><p>Training direction for runners who want to see the reasoning.</p><nav aria-label="Footer links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a><a href="{{ url_for('how_it_works_page') }}">How it works</a></nav></footer>
+  <footer class="landing-footer"><a class="landing-wordmark" href="#home">Gaman</a><p>Training direction for runners who want to see the reasoning.</p><nav aria-label="Footer links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a><a href="{{ url_for('how_it_works_page') }}">How it works</a></nav></footer>
 
   <dialog class="login-dialog" id="login-dialog" data-auto-open="{{ 'true' if error else 'false' }}" aria-labelledby="login-dialog-title">
-    <form method="post" class="compact-login" id="access"><button class="login-dialog-close" type="button" data-login-close aria-label="Close password dialog"></button><div class="login-dialog-copy"><small>Gaman AI</small><h2 id="login-dialog-title">Open dashboard</h2><p>Enter your password to continue.</p></div>{% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}<label for="password">Password</label><input id="password" type="password" name="password" autocomplete="current-password" required><button class="login-dialog-submit" type="submit">Continue</button></form>
+    <form method="post" class="compact-login" id="access"><button class="login-dialog-close" type="button" data-login-close aria-label="Close password dialog"></button><div class="login-dialog-copy"><small>Gaman</small><h2 id="login-dialog-title">Open dashboard</h2><p>Enter your password to continue.</p></div>{% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}<label for="password">Password</label><input id="password" type="password" name="password" autocomplete="current-password" required><button class="login-dialog-submit" type="submit">Continue</button></form>
   </dialog>
   <script src="{{ url_for('static', filename='landing.js') }}"></script>
 </body>

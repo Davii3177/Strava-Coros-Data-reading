@@ -223,13 +223,12 @@ class DashboardRenderingContractTests(unittest.TestCase):
             self.assertIn(attribute, video)
         self.assertEqual(video.get("aria-hidden"), "true")
         self.assertEqual(
-            video.get("poster"), "/static/images/gaman-0716-poster.jpg"
+            video.get("poster"), "/static/images/gaman-0716-poster-v2.jpg"
         )
         self.assertEqual(
             probe.video_sources,
             [
-                {"src": "/static/videos/gaman-0716-hero.webm", "type": "video/webm"},
-                {"src": "/static/videos/gaman-0716-hero.mp4", "type": "video/mp4"},
+                {"src": "/static/videos/gaman-0716-hero-full.mp4", "type": "video/mp4"},
             ],
         )
         for source in probe.video_sources:
@@ -415,8 +414,8 @@ class DashboardRenderingContractTests(unittest.TestCase):
             probe, {"/static/images/gaman-mountain-valley.jpg"}
         )
         self.assert_landing_video(probe)
-        self.assertIn("Run with clarity", probe.text)
-        self.assertIn("Less dashboard noise", probe.text)
+        self.assertIn("Run today, or rest?", probe.text)
+        self.assertIn("Sore quads", probe.text)
         self.assertIn("Your activity becomes a decision you can inspect", probe.text)
         self.assertIn("Honest limits where it does not", probe.text)
         self.assertIn("A running workspace built around the data", probe.text)
@@ -429,9 +428,8 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertGreaterEqual(
             sum(1 for _, attrs in probe.elements if "data-login-open" in attrs), 2
         )
-        self.assertEqual(
-            sum(1 for _, attrs in probe.elements if "data-about-benefit" in attrs), 3
-        )
+        self.assertIn("landing-preview-card", probe.classes)
+        self.assertIn("Ready to train", probe.text)
         self.assertNotIn("Run farther. Recover smarter.", probe.text)
         self.assertNotIn("landing-story", probe.classes)
         self.assertNotIn("daily", probe.elements_by_id)
@@ -472,6 +470,21 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertIn(".mobile-product-nav", stylesheet)
         self.assertIn("@media (max-width: 900px)", stylesheet)
         self.assertIn("@media (prefers-reduced-motion: reduce)", stylesheet)
+        self.assertIn("Contrast guarantee", stylesheet)
+        self.assertIn(".dashboard-body .readiness-card strong", stylesheet)
+        self.assertIn(".login-dialog-submit", stylesheet)
+        self.assertIn(".detail-body .metric-card:nth-child(2)", stylesheet)
+
+    def test_all_pages_use_the_contrast_stylesheet_revision(self):
+        public_routes = ("/", "/how-it-works")
+        for route in public_routes:
+            probe = parse(self.client.get(route))
+            self.assertTrue(all("fixes-20260716" in href for href in probe.stylesheets))
+
+        self.authenticate()
+        for route in ("/", "/training", "/activities", "/recovery", "/profile", f"/runs/{self.runs[0].id}"):
+            probe = parse(self.client.get(route))
+            self.assertTrue(all("fixes-20260716" in href for href in probe.stylesheets), route)
 
     def test_run_detail_renders_for_an_authenticated_sample_run(self):
         self.authenticate()

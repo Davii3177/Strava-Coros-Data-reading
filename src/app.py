@@ -294,7 +294,7 @@ def recovery_adherence(checkin_id):
 def export_recovery():
     if not session.get("authenticated"):
         return redirect(url_for("index"))
-    lines = ["Gaman AI recovery check-in summary", "Educational history only; not a diagnosis or treatment record.", ""]
+    lines = ["Gaman recovery check-in summary", "Educational history only; not a diagnosis or treatment record.", ""]
     for item in recovery_store.load_all():
         lines.append(f"{item.created_at[:10]} | {', '.join(item.body_areas)} | {item.side} | pain {item.pain_level}/10 | trend action: {item.adherence}")
         if item.location_detail:

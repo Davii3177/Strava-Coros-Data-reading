@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ area_title }} - Gaman AI</title>
+  <title>{{ area_title }} - Gaman</title>
   <meta name="description" content="{{ area_description }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='editorial-20260716') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='fixes-20260716') }}">
 </head>
 <body class="dashboard-body area-{{ active_area }}">
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand dashboard-wordmark" href="{{ url_for('index') }}" aria-label="Gaman AI overview">Gaman AI</a>
+      <a class="brand dashboard-wordmark" href="{{ url_for('index') }}" aria-label="Gaman overview">Gaman</a>
       <nav aria-label="Product areas" class="sidebar-nav product-nav">
         <a href="{{ url_for('index') }}"{% if active_area == 'overview' %} class="active" aria-current="page"{% endif %}>Overview</a>
         <a href="{{ url_for('training_page') }}"{% if active_area == 'training' %} class="active" aria-current="page"{% endif %}>Training</a>
@@ -28,7 +28,7 @@
 
     <main class="main" id="main-content">
       <header class="dashboard-page-header">
-        <div><p class="section-kicker">Gaman AI / {{ active_area|upper }}</p><h1>{{ area_title }}</h1><p>{{ area_description }}</p></div>
+        <div><p class="section-kicker">Gaman / {{ active_area|upper }}</p><h1>{{ area_title }}</h1><p>{{ area_description }}</p></div>
         {% if sample_data %}<div class="sample-label"><strong>Example data</strong><span>Connect a source to use your runs.</span></div>{% endif %}
       </header>
 
@@ -53,9 +53,9 @@
       {% if active_area == 'profile' %}
       <section class="profile-grid" aria-label="Profile settings">
         <article class="card connection-card"><p class="section-kicker">Data sources</p><h2>Connections</h2><div class="connection-row"><span><strong>Strava</strong><small>Activity import</small></span><b>{{ 'Connected' if strava_connected else 'Not configured' }}</b></div><div class="connection-row"><span><strong>Coros</strong><small>Activity import</small></span><b>{{ 'Connected' if coros_connected else 'Not configured' }}</b></div><p class="caption">Credentials stay on the server and are never placed in browser code.</p></article>
-        <article class="card privacy-card"><p class="section-kicker">Privacy</p><h2>Your data stays inspectable</h2><p>Gaman AI uses the activity fields supplied by your sources and labels unavailable measurements instead of inventing them.</p><a class="text-action" href="{{ url_for('how_it_works_page') }}">Read how guidance works</a></article>
+        <article class="card privacy-card"><p class="section-kicker">Privacy</p><h2>Your data stays inspectable</h2><p>Gaman uses the activity fields supplied by your sources and labels unavailable measurements instead of inventing them.</p><a class="text-action" href="{{ url_for('how_it_works_page') }}">Read how guidance works</a></article>
       </section>
-      <section class="about-panel" id="about"><div><p class="section-kicker">About Gaman AI</p><h2>Built around the data runners already create.</h2></div><div><p>Bring activities, goals, feedback, shoes, and recovery check-ins into one focused workspace.</p><div class="about-links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a></div></div><figure class="about-nature"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="A trail leading through a misty mountain valley" loading="lazy"><figcaption>Make space for the long view.</figcaption></figure></section>
+      <section class="about-panel" id="about"><div><p class="section-kicker">About Gaman</p><h2>Built around the data runners already create.</h2></div><div><p>Bring activities, goals, feedback, shoes, and recovery check-ins into one focused workspace.</p><div class="about-links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a></div></div><figure class="about-nature"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="A trail leading through a misty mountain valley" loading="lazy"></figure></section>
       {% endif %}
     </main>
   </div>
