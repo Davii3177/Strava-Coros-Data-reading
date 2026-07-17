@@ -479,12 +479,57 @@ class DashboardRenderingContractTests(unittest.TestCase):
         public_routes = ("/", "/how-it-works")
         for route in public_routes:
             probe = parse(self.client.get(route))
-            self.assertTrue(all("fixes-20260716" in href for href in probe.stylesheets))
+            self.assertTrue(all("ask-gaman-20260717" in href for href in probe.stylesheets))
 
         self.authenticate()
         for route in ("/", "/training", "/activities", "/recovery", "/profile", f"/runs/{self.runs[0].id}"):
             probe = parse(self.client.get(route))
-            self.assertTrue(all("fixes-20260716" in href for href in probe.stylesheets), route)
+            self.assertTrue(all("ask-gaman-20260717" in href for href in probe.stylesheets), route)
+
+    def test_ask_gaman_widget_is_present_on_dashboard(self):
+        self.authenticate()
+        probe = parse(self.client.get("/"))
+        self.assertIn("ask-panel", probe.elements_by_id)
+        self.assertEqual(probe.elements_by_id["ask-panel"][0], "dialog")
+        self.assertIn("data-ask-open", probe.data_attributes)
+        self.assertIn("/static/ask.js", probe.scripts)
+
+    def test_ask_endpoint_requires_authentication(self):
+        response = self.client.post("/api/ask", json={"question": "Should I run today?"})
+        self.assertEqual(response.status_code, 401)
+
+    def test_ask_endpoint_rejects_an_empty_question(self):
+        self.authenticate()
+        response = self.client.post("/api/ask", json={"question": "   "})
+        self.assertEqual(response.status_code, 400)
+
+    def test_ask_endpoint_reports_when_not_configured(self):
+        self.authenticate()
+        with patch.dict(app_module.os.environ, {}, clear=False):
+            app_module.os.environ.pop("GEMINI_API_KEY", None)
+            response = self.client.post("/api/ask", json={"question": "Should I run today?"})
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertFalse(data["ok"])
+        self.assertIn("GEMINI_API_KEY", data["answer"])
+
+    def test_ask_endpoint_returns_a_grounded_answer_when_configured(self):
+        self.authenticate()
+        with patch.dict(app_module.os.environ, {"GEMINI_API_KEY": "test-key"}), patch.object(
+            app_module, "_ask_gemini", return_value="Keep today easy: an easy 5 km."
+        ) as fake_model:
+            response = self.client.post(
+                "/api/ask", json={"question": "What should I run today?", "history": []}
+            )
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertTrue(data["ok"])
+        self.assertIn("easy 5 km", data["answer"])
+        # The model must be called with a grounded context containing the runner's readiness.
+        self.assertTrue(fake_model.called)
+        context_arg = fake_model.call_args.args[2]
+        self.assertIn("readiness", context_arg)
+        self.assertIn("recent_runs", context_arg)
 
     def test_run_detail_renders_for_an_authenticated_sample_run(self):
         self.authenticate()

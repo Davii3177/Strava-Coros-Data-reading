@@ -453,6 +453,147 @@ def create_recovery_checkin():
     return jsonify(guidance=guidance, urgent=urgent, training_context=context)
 
 
+ASK_RATE_LIMIT = 20
+GEMINI_MODEL_DEFAULT = "gemini-3.1-flash-lite"
+ASK_SYSTEM_PROMPT = (
+    "You are Ask Gaman, the assistant inside the Gaman running app. You help one runner interpret their own "
+    "training data and make sensible, conservative decisions: what to run today, how hard, when to rest, and "
+    "how to approach an upcoming race. A JSON object with that runner's real logged data (recent runs, readiness, "
+    "weekly load, today's recommended session, upcoming race, recovery notes) is included with each question. "
+    "Ground every answer in that data. Never invent numbers that are not present — if a metric is missing, say so. "
+    "Clearly separate measured facts from your own estimates or general advice. Keep answers concise and specific: "
+    "a few short paragraphs or a short list, not an essay. You are not a doctor — for pain, injury, or medical "
+    "symptoms give only general educational information, point the runner to the Body & Recovery check-in, and "
+    "recommend a clinician; never diagnose or prescribe. Favor gradual progression and recovery over pushing "
+    "through warning signs."
+)
+
+
+def _ask_context() -> dict:
+    """Compact, grounded snapshot of the runner's data for the chat model (no charts/heavy objects)."""
+    runs = _all_runs()
+    feedback_by_run = feedback_store.load_all()
+    races = race_store.load_all()
+    checkins = recovery_store.load_all()
+    readiness = training_load.calculate(runs, feedback_by_run, checkins)
+    today = date.today()
+    upcoming = next((race for race in sorted(races, key=lambda r: r.date) if race.date >= today), None)
+    trends = recovery_trends.summarize(checkins)
+    context = {
+        "today": today.isoformat(),
+        "run_count": len(runs),
+        "readiness": {
+            "status": readiness.get("status"),
+            "recent_7day_km": readiness.get("recent_km"),
+            "prior_weekly_km": readiness.get("prior_weekly_km"),
+            "load_change_percent": readiness.get("change_percent"),
+        },
+        "recent_runs": [
+            {
+                "date": run.date.isoformat(),
+                "source": run.source,
+                "distance_km": run.distance_km,
+                "duration_min": run.duration_min,
+                "pace": run.pace_str,
+                "avg_hr": run.avg_hr,
+                "elevation_gain_m": run.elevation_gain_m,
+            }
+            for run in runs[:8]
+        ],
+        "upcoming_race": (
+            {"name": upcoming.name, "date": upcoming.date.isoformat(), "distance_km": upcoming.distance_km}
+            if upcoming
+            else None
+        ),
+        "recovery_trends": [
+            {"area": item.get("area"), "latest": item.get("latest"), "trend": item.get("trend")}
+            for item in trends.get("areas", [])
+        ],
+    }
+    if runs:
+        today_run = planning.todays_run(runs, readiness, races)
+        context["todays_recommended_run"] = {
+            "type": today_run.get("type"),
+            "distance_km": today_run.get("distance_km"),
+            "duration_min": today_run.get("duration_min"),
+            "target": today_run.get("target"),
+            "purpose": today_run.get("purpose"),
+        }
+        context["weekly_mileage_km"] = analysis.weekly_mileage_km(runs)
+        context["average_pace"] = format_pace(analysis.avg_pace_min_km(runs))
+    return context
+
+
+def _ask_gemini(question: str, history: list[dict], context: dict) -> str | None:
+    """Call Google's Gemini generateContent endpoint; any failure returns None so the caller falls back safely."""
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return None
+    model = os.environ.get("GEMINI_MODEL", GEMINI_MODEL_DEFAULT)
+    contents = []
+    for turn in history:
+        text = str(turn.get("content", "")).strip()
+        if not text:
+            continue
+        role = "model" if turn.get("role") in ("assistant", "model") else "user"
+        contents.append({"role": role, "parts": [{"text": text[:2000]}]})
+    contents.append(
+        {"role": "user", "parts": [{"text": "My training data (JSON):\n" + json.dumps(context) + "\n\nQuestion: " + question}]}
+    )
+    try:
+        import requests
+        response = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+            headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
+            json={
+                "system_instruction": {"parts": [{"text": ASK_SYSTEM_PROMPT}]},
+                "contents": contents,
+                "generationConfig": {"temperature": 0.3, "maxOutputTokens": 800},
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        candidates = response.json().get("candidates", [])
+        if not candidates:
+            return None
+        parts = candidates[0].get("content", {}).get("parts", [])
+        text = "".join(part.get("text", "") for part in parts).strip()
+        return text or None
+    except (requests.RequestException, KeyError, IndexError, ValueError):
+        return None
+
+
+@app.route("/api/ask", methods=["POST"])
+def ask_gaman():
+    if not session.get("authenticated"):
+        return jsonify(error="Authentication required."), 401
+    now = datetime.now(timezone.utc).timestamp()
+    timestamps = [stamp for stamp in session.get("ask_requests", []) if now - stamp < AI_RATE_WINDOW_SECONDS]
+    if len(timestamps) >= ASK_RATE_LIMIT:
+        return jsonify(error=f"Ask Gaman is limited to {ASK_RATE_LIMIT} questions per hour. Please try again later."), 429
+    payload = request.get_json(silent=True) or {}
+    question = str(payload.get("question", "")).strip()
+    if not question:
+        return jsonify(error="Type a question first."), 400
+    question = question[:1000]
+    history = payload.get("history", [])
+    history = history[-8:] if isinstance(history, list) else []
+    if not os.environ.get("GEMINI_API_KEY"):
+        return jsonify(
+            ok=False,
+            answer=(
+                "Ask Gaman isn’t set up yet — add a GEMINI_API_KEY on the server to enable it. In the meantime, "
+                "the Overview shows your readiness, today’s recommended run, and weekly load."
+            ),
+        )
+    answer = _ask_gemini(question, history, _ask_context())
+    if not answer:
+        return jsonify(ok=False, answer="Ask Gaman couldn’t answer just now. Please try again in a moment.")
+    timestamps.append(now)
+    session["ask_requests"] = timestamps
+    return jsonify(ok=True, answer=answer)
+
+
 def _pace_chart_html(runs: list[Run]) -> str:
     by_source: dict[str, list[Run]] = {}
     for r in runs:

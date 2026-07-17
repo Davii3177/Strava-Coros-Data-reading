@@ -30,6 +30,7 @@ The hosted app is password-protected. Ask the owner for access.
 - A trained workout model that adapts suggestions from logged feedback
 - Detailed Body & Recovery check-ins with saved history
 - Optional server-side AI-expanded recovery education
+- **Ask Gaman**, an optional Gemini-powered chat assistant that answers training questions grounded in your logged runs, readiness, and races
 - A consistent responsive light theme
 
 ## Editorial trail-running experience
@@ -99,6 +100,29 @@ The recovery endpoint includes:
 - server-side API keys only
 
 Check-ins are stored locally in `data/recovery_checkins.json`.
+
+## Ask Gaman (optional chat assistant)
+
+Ask Gaman is a chat assistant available from a launcher on every authenticated
+dashboard page. Each question is sent to Google's Gemini API together with a
+compact, grounded snapshot of the runner's own data — readiness, recent runs,
+weekly load, today's recommended session, an upcoming race, and recovery trends
+— so answers reference real numbers rather than generic advice.
+
+To enable it, set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default
+`gemini-3.1-flash-lite`) in `.env`. The `POST /api/ask` endpoint:
+
+- requires an authenticated session
+- validates and length-caps the question, and keeps only the recent turns of history
+- limits requests to twenty per hour per session
+- instructs the model to stay conservative, never invent missing metrics, avoid
+  diagnosis, and defer injury/medical questions to a clinician and the Body &
+  Recovery check-in
+- degrades gracefully: with no key it returns a friendly "not set up yet" message,
+  and any API error falls back to a safe "try again" response
+
+Data is sent to Google only when a runner actually uses Ask Gaman, and the key is
+read only on the server.
 
 ## Technology
 

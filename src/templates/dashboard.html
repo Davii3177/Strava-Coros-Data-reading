@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ area_title }} - Gaman</title>
   <meta name="description" content="{{ area_description }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='fixes-20260716') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='ask-gaman-20260717') }}">
 </head>
 <body class="dashboard-body area-{{ active_area }}">
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -63,8 +63,25 @@
   <nav class="mobile-product-nav" aria-label="Mobile product areas">
     <a href="{{ url_for('index') }}"{% if active_area == 'overview' %} class="active" aria-current="page"{% endif %}>Overview</a><a href="{{ url_for('training_page') }}"{% if active_area == 'training' %} class="active" aria-current="page"{% endif %}>Training</a><a href="{{ url_for('activities_page') }}"{% if active_area == 'activities' %} class="active" aria-current="page"{% endif %}>Activities</a><a href="{{ url_for('recovery_page') }}"{% if active_area == 'recovery' %} class="active" aria-current="page"{% endif %}>Recovery</a><a href="{{ url_for('profile_page') }}"{% if active_area == 'profile' %} class="active" aria-current="page"{% endif %}>Profile</a>
   </nav>
+
+  <button class="ask-launcher" type="button" data-ask-open aria-haspopup="dialog" aria-controls="ask-panel"><span class="ask-launcher-mark" aria-hidden="true">✦</span>Ask Gaman</button>
+  <dialog class="ask-panel" id="ask-panel" aria-labelledby="ask-title">
+    <div class="ask-head">
+      <div><p class="section-kicker">Ask Gaman</p><h2 id="ask-title">Ask about your training</h2></div>
+      <button class="ask-close" type="button" data-ask-close aria-label="Close Ask Gaman"></button>
+    </div>
+    <p class="ask-disclaimer">Answers are grounded in your logged runs and readiness. Educational only — not medical advice.</p>
+    <div class="ask-log" id="ask-log" role="log" aria-live="polite" aria-label="Ask Gaman conversation"></div>
+    <form class="ask-form" id="ask-form">
+      <label class="sr-only" for="ask-input">Your question</label>
+      <textarea id="ask-input" name="question" rows="1" maxlength="1000" placeholder="e.g. Should I do the tempo run today?" required></textarea>
+      <button class="ask-send" type="submit">Send</button>
+    </form>
+  </dialog>
+
   <script src="{{ url_for('static', filename='dashboard_compact.js') }}"></script>
   <script src="{{ url_for('static', filename='run_panels.js') }}"></script>
   {% if active_area == 'recovery' %}<script src="{{ url_for('static', filename='recovery.js') }}"></script>{% endif %}
+  <script src="{{ url_for('static', filename='ask.js') }}"></script>
 </body>
 </html>
