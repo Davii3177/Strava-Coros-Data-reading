@@ -2,11 +2,15 @@
 perceived difficulty from submitted run feedback, and uses that fit to
 nudge suggested workout paces toward a target difficulty.
 
-Deliberately kept to a plain linear regression with three coefficients
-so the relationship stays inspectable (per this project's "no black-box
-AI" stance) rather than swapping in something opaque. `analysis.py` falls
-back to its fixed rule-based paces until there's enough feedback to fit
-a model that's better than a guess (see MIN_SAMPLES).
+Deliberately a plain linear regression with three coefficients so the
+relationship stays inspectable (per this project's "no black-box AI" stance).
+The fit is ordinary least squares solved in pure Python (normal equations +
+Gaussian elimination) so there is no heavy native dependency — this keeps the
+app portable to constrained runtimes (e.g. Cloudflare Workers / Pyodide) where
+scikit-learn/scipy cannot be bundled. `analysis.py` falls back to its fixed
+rule-based paces until there's enough feedback to fit a model (see MIN_SAMPLES),
+and `train` returns None if the feedback is degenerate (e.g. collinear inputs),
+so the caller safely stays on the rules.
 """
 from dataclasses import dataclass
 
@@ -50,19 +54,58 @@ class TrainedWorkoutModel:
         ) / self.coef_pace
 
 
+def _solve_linear_system(matrix: list[list[float]], vector: list[float]) -> list[float] | None:
+    """Solve `matrix @ x = vector` via Gaussian elimination with partial
+    pivoting. Returns None if the system is singular (no unique solution)."""
+    size = len(vector)
+    # Work on an augmented copy so the inputs are left untouched.
+    augmented = [row[:] + [vector[i]] for i, row in enumerate(matrix)]
+    for col in range(size):
+        pivot = max(range(col, size), key=lambda r: abs(augmented[r][col]))
+        if abs(augmented[pivot][col]) < 1e-12:
+            return None
+        augmented[col], augmented[pivot] = augmented[pivot], augmented[col]
+        pivot_value = augmented[col][col]
+        for r in range(size):
+            if r == col:
+                continue
+            factor = augmented[r][col] / pivot_value
+            if factor:
+                for c in range(col, size + 1):
+                    augmented[r][c] -= factor * augmented[col][c]
+    return [augmented[i][size] / augmented[i][i] for i in range(size)]
+
+
+def _fit_ols(rows: list[list[float]], targets: list[float]) -> list[float] | None:
+    """Ordinary least squares with an intercept term, via the normal equations
+    (X^T X) b = X^T y. `rows` are the feature vectors; returns
+    [intercept, *coefficients] or None when the fit is not well-determined."""
+    design = [[1.0, *row] for row in rows]  # prepend the intercept column
+    width = len(design[0])
+    gram = [[0.0] * width for _ in range(width)]
+    moment = [0.0] * width
+    for features, target in zip(design, targets):
+        for i in range(width):
+            moment[i] += features[i] * target
+            for j in range(width):
+                gram[i][j] += features[i] * features[j]
+    return _solve_linear_system(gram, moment)
+
+
 def train(feedback_entries: list[Feedback]) -> TrainedWorkoutModel | None:
     if len(feedback_entries) < MIN_SAMPLES:
         return None
 
-    from sklearn.linear_model import LinearRegression
+    rows = [[fb.distance_km, fb.avg_pace_min_km, fb.elevation_gain_m] for fb in feedback_entries]
+    targets = [fb.difficulty for fb in feedback_entries]
 
-    x = [[fb.distance_km, fb.avg_pace_min_km, fb.elevation_gain_m] for fb in feedback_entries]
-    y = [fb.difficulty for fb in feedback_entries]
+    solution = _fit_ols(rows, targets)
+    if solution is None:
+        return None
 
-    fitted = LinearRegression().fit(x, y)
-    coef_distance, coef_pace, coef_elevation = fitted.coef_
+    intercept, coef_distance, coef_pace, coef_elevation = solution
     return TrainedWorkoutModel(
-        intercept=fitted.intercept_,
+        intercept=intercept,
         coef_distance=coef_distance,
         coef_pace=coef_pace,
         coef_elevation=coef_elevation,
