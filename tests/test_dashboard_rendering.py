@@ -479,12 +479,12 @@ class DashboardRenderingContractTests(unittest.TestCase):
         public_routes = ("/", "/how-it-works")
         for route in public_routes:
             probe = parse(self.client.get(route))
-            self.assertTrue(all("ask-btn-20260717" in href for href in probe.stylesheets))
+            self.assertTrue(all("recovery-header-20260718" in href for href in probe.stylesheets))
 
         self.authenticate()
         for route in ("/", "/training", "/activities", "/recovery", "/profile", f"/runs/{self.runs[0].id}"):
             probe = parse(self.client.get(route))
-            self.assertTrue(all("ask-btn-20260717" in href for href in probe.stylesheets), route)
+            self.assertTrue(all("recovery-header-20260718" in href for href in probe.stylesheets), route)
 
     def test_ask_gaman_widget_is_present_on_dashboard(self):
         self.authenticate()
