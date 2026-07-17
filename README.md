@@ -110,7 +110,7 @@ weekly load, today's recommended session, an upcoming race, and recovery trends
 — so answers reference real numbers rather than generic advice.
 
 To enable it, set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default
-`gemini-3.1-flash-lite`) in `.env`. The `POST /api/ask` endpoint:
+`gemini-flash-lite-latest`) in `.env`. The `POST /api/ask` endpoint:
 
 - requires an authenticated session
 - validates and length-caps the question, and keeps only the recent turns of history

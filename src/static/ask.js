@@ -28,12 +28,37 @@
     if (event.target === panel) close();
   });
 
-  function bubble(role, text) {
+  function escapeHtml(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  // Minimal, safe renderer: escapes HTML first, then converts a small Markdown
+  // subset (**bold**, hyphen/asterisk bullets, line breaks) into our own tags.
+  function renderRich(text) {
+    var esc = escapeHtml(text).replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+    var html = "";
+    var inList = false;
+    esc.split(/\r?\n/).forEach(function (line) {
+      var bullet = line.match(/^\s*[-*•]\s+(.*)$/);
+      if (bullet) {
+        if (!inList) { html += "<ul>"; inList = true; }
+        html += "<li>" + bullet[1] + "</li>";
+      } else {
+        if (inList) { html += "</ul>"; inList = false; }
+        if (line.trim() !== "") html += "<p>" + line + "</p>";
+      }
+    });
+    if (inList) html += "</ul>";
+    return html || "<p></p>";
+  }
+
+  function bubble(role, text, rich) {
     var wrap = document.createElement("div");
     wrap.className = "ask-msg ask-" + role;
     var body = document.createElement("div");
     body.className = "ask-bubble";
-    body.textContent = text;
+    if (rich) body.innerHTML = renderRich(text);
+    else body.textContent = text;
     wrap.appendChild(body);
     log.appendChild(wrap);
     log.scrollTop = log.scrollHeight;
@@ -86,7 +111,7 @@
       var data = await response.json();
       typing.remove();
       if (!response.ok) throw new Error(data.error || "Ask Gaman is unavailable right now.");
-      bubble("bot", data.answer);
+      bubble("bot", data.answer, true);
       if (data.ok) {
         history.push({ role: "user", content: question });
         history.push({ role: "assistant", content: data.answer });

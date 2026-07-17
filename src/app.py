@@ -454,18 +454,20 @@ def create_recovery_checkin():
 
 
 ASK_RATE_LIMIT = 20
-GEMINI_MODEL_DEFAULT = "gemini-3.1-flash-lite"
+GEMINI_MODEL_DEFAULT = "gemini-flash-lite-latest"
 ASK_SYSTEM_PROMPT = (
     "You are Ask Gaman, the assistant inside the Gaman running app. You help one runner interpret their own "
     "training data and make sensible, conservative decisions: what to run today, how hard, when to rest, and "
     "how to approach an upcoming race. A JSON object with that runner's real logged data (recent runs, readiness, "
     "weekly load, today's recommended session, upcoming race, recovery notes) is included with each question. "
-    "Ground every answer in that data. Never invent numbers that are not present — if a metric is missing, say so. "
-    "Clearly separate measured facts from your own estimates or general advice. Keep answers concise and specific: "
-    "a few short paragraphs or a short list, not an essay. You are not a doctor — for pain, injury, or medical "
-    "symptoms give only general educational information, point the runner to the Body & Recovery check-in, and "
-    "recommend a clinician; never diagnose or prescribe. Favor gradual progression and recovery over pushing "
-    "through warning signs."
+    "Ground every answer in that data and never invent numbers that are not present.\n\n"
+    "Be brief. Start with a one-sentence direct answer or recommendation, then add at most two or three short "
+    "supporting points. Stay under about 80 words. Do not write long paragraphs, and do not add headings, "
+    "preambles, or sign-offs. When you list points, use simple hyphen bullets (each on its own line). You may use "
+    "**bold** on a single short label if it helps, but keep formatting minimal. Write in plain, direct language.\n\n"
+    "You are not a doctor — for pain, injury, or medical symptoms give only brief general education, point the "
+    "runner to the Body & Recovery check-in, and suggest a clinician; never diagnose or prescribe. Favor gradual "
+    "progression and recovery over pushing through warning signs."
 )
 
 
@@ -540,25 +542,33 @@ def _ask_gemini(question: str, history: list[dict], context: dict) -> str | None
     contents.append(
         {"role": "user", "parts": [{"text": "My training data (JSON):\n" + json.dumps(context) + "\n\nQuestion: " + question}]}
     )
+    payload = {
+        "system_instruction": {"parts": [{"text": ASK_SYSTEM_PROMPT}]},
+        "contents": contents,
+        # gemini-3/2.5 flash are "thinking" models; disable thinking so the token
+        # budget goes to the (deliberately short) answer instead of hidden
+        # reasoning — keeps replies fast, cheap, concise, and never truncated.
+        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 600, "thinkingConfig": {"thinkingBudget": 0}},
+    }
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
     try:
+        import time
         import requests
-        response = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-            headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
-            json={
-                "system_instruction": {"parts": [{"text": ASK_SYSTEM_PROMPT}]},
-                "contents": contents,
-                "generationConfig": {"temperature": 0.3, "maxOutputTokens": 800},
-            },
-            timeout=30,
-        )
-        response.raise_for_status()
-        candidates = response.json().get("candidates", [])
-        if not candidates:
-            return None
-        parts = candidates[0].get("content", {}).get("parts", [])
-        text = "".join(part.get("text", "") for part in parts).strip()
-        return text or None
+        for attempt in range(3):
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            # Preview flash models are occasionally overloaded (503); retry briefly.
+            if response.status_code == 503 and attempt < 2:
+                time.sleep(1.2 * (attempt + 1))
+                continue
+            response.raise_for_status()
+            candidates = response.json().get("candidates", [])
+            if not candidates:
+                return None
+            parts = candidates[0].get("content", {}).get("parts", [])
+            text = "".join(part.get("text", "") for part in parts).strip()
+            return text or None
+        return None
     except (requests.RequestException, KeyError, IndexError, ValueError):
         return None
 
