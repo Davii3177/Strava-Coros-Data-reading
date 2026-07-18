@@ -182,6 +182,7 @@ The default local address is `http://127.0.0.1:8502/`. When neither Strava nor C
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `APP_PASSWORD` | Yes | Protects access to the dashboard |
+| `RUNNER_TIMEZONE` | Recommended | IANA timezone (e.g. `America/New_York`) for the runner's actual location; without it, a deployed server running in UTC (Render and most hosts) rolls "today" over hours before the runner's actual midnight, silently showing tomorrow's workout in the evening |
 | `FLASK_SECRET_KEY` | Recommended | Provides a persistent Flask session-signing key |
 | `STRAVA_CLIENT_ID` | No | Strava application client ID |
 | `STRAVA_CLIENT_SECRET` | No | Strava application client secret |

@@ -95,6 +95,7 @@ def generate_next_workouts(
     runs: list[Run],
     model: TrainedWorkoutModel | None = None,
     nearest_race_date: date | None = None,
+    today: date | None = None,
 ) -> list[str]:
     """Day-by-day forecast for the next 7 days, built from the same
     weekly_schedule() the calendar view renders — so a given date always shows
@@ -116,7 +117,7 @@ def generate_next_workouts(
     avg_pace = avg_pace_min_km(runs)
     long_run_km = round(mileage / len(runs) * 1.6, 1)
 
-    today = date.today()
+    today = today or date.today()
     tapering = is_tapering(today, nearest_race_date)
     if tapering:
         long_run_km = round(long_run_km * 0.6, 1)

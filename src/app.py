@@ -4,6 +4,7 @@ import json
 import os
 import secrets
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import plotly.graph_objects as go
 from dotenv import load_dotenv
@@ -36,6 +37,25 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
 def _password_ok(entered: str) -> bool:
     expected = os.environ.get("APP_PASSWORD")
     return bool(expected) and hmac.compare_digest(entered, expected)
+
+
+def _today() -> date:
+    """The runner's local calendar date.
+
+    Hosts like Render run containers in UTC. A bare `date.today()` there
+    rolls over to the next day several hours before midnight in most US/EU
+    timezones, so "today's run" silently shows tomorrow's workout for the
+    back half of the runner's evening. RUNNER_TIMEZONE (an IANA zone name,
+    e.g. "America/New_York") fixes the calendar date to where the runner
+    actually is; unset or invalid falls back to the server's own local date.
+    """
+    tz_name = os.environ.get("RUNNER_TIMEZONE")
+    if tz_name:
+        try:
+            return datetime.now(ZoneInfo(tz_name)).date()
+        except ZoneInfoNotFoundError:
+            pass
+    return date.today()
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -221,7 +241,7 @@ def update_today_status():
         abort(400)
     if distance_km is not None and not 0 <= distance_km <= 500:
         abort(400)
-    training_store.save(date.today().isoformat(), status, distance_km, request.form.get("note", "").strip())
+    training_store.save(_today().isoformat(), status, distance_km, request.form.get("note", "").strip())
     return redirect(url_for("index") + "#daily")
 
 
@@ -486,8 +506,8 @@ def _ask_context() -> dict:
     feedback_by_run = feedback_store.load_all()
     races = race_store.load_all()
     checkins = recovery_store.load_all()
-    readiness = training_load.calculate(runs, feedback_by_run, checkins)
-    today = date.today()
+    today = _today()
+    readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today)
     upcoming = next((race for race in sorted(races, key=lambda r: r.date) if race.date >= today), None)
     trends = recovery_trends.summarize(checkins)
     context = {
@@ -522,7 +542,7 @@ def _ask_context() -> dict:
         ],
     }
     if runs:
-        today_run = planning.todays_run(runs, readiness, races)
+        today_run = planning.todays_run(runs, readiness, races, today=today)
         context["todays_recommended_run"] = {
             "type": today_run.get("type"),
             "distance_km": today_run.get("distance_km"),
@@ -652,8 +672,8 @@ def _pace_chart_html(runs: list[Run]) -> str:
     return fig.to_html(full_html=False, include_plotlyjs="cdn", div_id="pace-chart")
 
 
-def _build_calendar(year: int, month: int, runs: list[Run], races: list[Race]) -> list[list[dict]]:
-    today = date.today()
+def _build_calendar(year: int, month: int, runs: list[Run], races: list[Race], today: date | None = None) -> list[list[dict]]:
+    today = today or _today()
     runs_by_date = {r.date: r for r in runs}
     races_by_date = {r.date: r for r in races}
     nearest_race_date = next((r.date for r in races if r.date >= today), None)
@@ -686,7 +706,7 @@ def _feedback_runs(
     today: date | None = None,
 ) -> list[Run]:
     """Keep saved feedback visible and expire unanswered prompts after seven days."""
-    today = today or date.today()
+    today = today or _today()
     cutoff = today - timedelta(days=7)
     return [
         run
@@ -700,9 +720,9 @@ def _dashboard_context() -> dict:
     feedback_by_run = feedback_store.load_all()
     races = race_store.load_all()
     checkins = recovery_store.load_all()
-    readiness = training_load.calculate(runs, feedback_by_run, checkins)
+    today = _today()
+    readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today)
 
-    today = date.today()
     try:
         year = int(request.args.get("year", today.year))
         month = int(request.args.get("month", today.month))
@@ -722,7 +742,7 @@ def _dashboard_context() -> dict:
         "feedback_runs": _feedback_runs(runs, feedback_by_run, feedback_store.load_dismissed(), today),
         "feedback_expiry_days": 7,
         "races": races,
-        "calendar_weeks": _build_calendar(year, month, runs, races),
+        "calendar_weeks": _build_calendar(year, month, runs, races, today=today),
         "month_label": first_of_month.strftime("%B %Y"),
         "prev_year": prev_month.year,
         "prev_month": prev_month.month,
@@ -731,10 +751,10 @@ def _dashboard_context() -> dict:
         "recovery_checkins": checkins[:5],
         "recovery_context": _training_context(runs),
         "readiness": readiness,
-        "today_run": planning.todays_run(runs, readiness, races),
-        "plan_actual": planning.plan_vs_actual(runs, races, training_store.load_all(), feedback_by_run=feedback_by_run),
+        "today_run": planning.todays_run(runs, readiness, races, today=today),
+        "plan_actual": planning.plan_vs_actual(runs, races, training_store.load_all(), today=today, feedback_by_run=feedback_by_run),
         "today_saved": training_store.load_all().get(today.isoformat()),
-        "race_goal": race_prediction.goal_center(races, runs),
+        "race_goal": race_prediction.goal_center(races, runs, today=today),
         "personal_records": personal_records.calculate(runs),
         "recovery_trends": recovery_trends.summarize(checkins),
         "shoes": shoe_store.with_mileage(runs, feedback_by_run),
@@ -754,7 +774,7 @@ def _dashboard_context() -> dict:
         run_count=len(runs),
         chart_html=_pace_chart_html(runs),
         feedback=analysis.generate_feedback(runs),
-        workouts=analysis.generate_next_workouts(runs, model=model, nearest_race_date=nearest_race_date),
+        workouts=analysis.generate_next_workouts(runs, model=model, nearest_race_date=nearest_race_date, today=today),
     )
     return context
 
