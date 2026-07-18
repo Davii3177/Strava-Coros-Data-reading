@@ -3222,6 +3222,12 @@ a { color: inherit; }
 .dashboard-body .app-shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100vh; }
 .dashboard-body .sidebar { position: sticky; top: 0; display: flex; flex-direction: column; width: auto; height: 100vh; padding: 34px 24px 24px; border-right: 1px solid var(--g-line); background: #1a171c; color: #f8f6f9; }
 .dashboard-wordmark { margin-bottom: 54px; color: #fff; font-family: "Instrument Serif", Georgia, "Times New Roman", serif; font-size: 1.5rem; letter-spacing: -.04em; text-decoration: none; }
+.sidebar-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 54px; }
+.sidebar-top .dashboard-wordmark { margin-bottom: 0; }
+.lang-toggle { padding: 5px 10px; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; color: rgba(255,255,255,.75); font-size: .68rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.lang-toggle:hover, .lang-toggle:focus-visible { border-color: #fff; color: #fff; }
+.landing-header .lang-toggle { border-color: var(--g-line); color: var(--g-ink); }
+.landing-header .lang-toggle:hover, .landing-header .lang-toggle:focus-visible { border-color: var(--g-purple); color: var(--g-purple); }
 .dashboard-body .sidebar-nav { display: grid; gap: 4px; }.dashboard-body .sidebar-nav a { min-height: 42px; padding: 13px 12px; border-radius: 7px; color: rgba(255,255,255,.68); font-size: .75rem; font-weight: 700; text-decoration: none; transition: background var(--g-speed), color var(--g-speed); }.dashboard-body .sidebar-nav a:hover, .dashboard-body .sidebar-nav a.active { background: rgba(255,255,255,.09); color: #fff; }.dashboard-body .sidebar-nav a.active { box-shadow: inset 3px 0 0 #a98cbb; }
 .dashboard-body .connections { display: grid; gap: 8px; margin-top: auto; padding: 22px 0; border-top: 1px solid rgba(255,255,255,.12); }.dashboard-body .conn-line { margin: 0; color: rgba(255,255,255,.75); font-size: .66rem; }.dashboard-body .conn-line::before { background: #78a57b; }.dashboard-body .conn-line.conn-off::before { background: #77717a; }
 .dashboard-body .sidebar-footer { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }.dashboard-body .sidebar-footer a { display: block; width: 100%; color: rgba(255,255,255,.58); font-size: .66rem; text-decoration: none; white-space: nowrap; }

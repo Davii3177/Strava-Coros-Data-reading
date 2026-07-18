@@ -1,35 +1,35 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="{{ lang() }}" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ area_title }} - Gaman</title>
   <meta name="description" content="{{ area_description }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='sidebar-footer-20260719') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='zh-lang-toggle-20260717') }}">
 </head>
 <body class="dashboard-body area-{{ active_area }}">
-  <a class="skip-link" href="#main-content">Skip to content</a>
+  <a class="skip-link" href="#main-content">{{ t('skip_link') }}</a>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand dashboard-wordmark" href="{{ url_for('index') }}" aria-label="Gaman overview">Gaman</a>
+      <div class="sidebar-top"><a class="brand dashboard-wordmark" href="{{ url_for('index') }}" aria-label="Gaman overview">Gaman</a><a class="lang-toggle" href="{{ url_for('set_language', code='zh' if lang() == 'en' else 'en') }}">{{ '中文' if lang() == 'en' else 'EN' }}</a></div>
       <nav aria-label="Product areas" class="sidebar-nav product-nav">
-        <a href="{{ url_for('index') }}"{% if active_area == 'overview' %} class="active" aria-current="page"{% endif %}>Overview</a>
-        <a href="{{ url_for('training_page') }}"{% if active_area == 'training' %} class="active" aria-current="page"{% endif %}>Training</a>
-        <a href="{{ url_for('activities_page') }}"{% if active_area == 'activities' %} class="active" aria-current="page"{% endif %}>Activities</a>
-        <a href="{{ url_for('recovery_page') }}"{% if active_area == 'recovery' %} class="active" aria-current="page"{% endif %}>Body &amp; Recovery</a>
-        <a href="{{ url_for('profile_page') }}"{% if active_area == 'profile' %} class="active" aria-current="page"{% endif %}>Profile</a>
+        <a href="{{ url_for('index') }}"{% if active_area == 'overview' %} class="active" aria-current="page"{% endif %}>{{ t('nav.overview') }}</a>
+        <a href="{{ url_for('training_page') }}"{% if active_area == 'training' %} class="active" aria-current="page"{% endif %}>{{ t('nav.training') }}</a>
+        <a href="{{ url_for('activities_page') }}"{% if active_area == 'activities' %} class="active" aria-current="page"{% endif %}>{{ t('nav.activities') }}</a>
+        <a href="{{ url_for('recovery_page') }}"{% if active_area == 'recovery' %} class="active" aria-current="page"{% endif %}>{{ t('nav.recovery') }}</a>
+        <a href="{{ url_for('profile_page') }}"{% if active_area == 'profile' %} class="active" aria-current="page"{% endif %}>{{ t('nav.profile') }}</a>
       </nav>
       <div class="connections" aria-label="Connection status">
-        <p class="conn-line{{ '' if strava_connected else ' conn-off' }}">Strava {{ 'connected' if strava_connected else 'not connected' }}</p>
-        <p class="conn-line{{ '' if coros_connected else ' conn-off' }}">Coros {{ 'connected' if coros_connected else 'not connected' }}</p>
+        <p class="conn-line{{ '' if strava_connected else ' conn-off' }}">{{ t('conn.strava_connected') if strava_connected else t('conn.strava_not_connected') }}</p>
+        <p class="conn-line{{ '' if coros_connected else ' conn-off' }}">{{ t('conn.coros_connected') if coros_connected else t('conn.coros_not_connected') }}</p>
       </div>
-      <div class="sidebar-footer"><a href="{{ url_for('how_it_works_page') }}">How it works</a><a href="{{ url_for('research_page') }}">Research</a><a href="{{ url_for('logout') }}">Log out</a></div>
+      <div class="sidebar-footer"><a href="{{ url_for('how_it_works_page') }}">{{ t('footer.how') }}</a><a href="{{ url_for('research_page') }}">{{ t('footer.research') }}</a><a href="{{ url_for('logout') }}">{{ t('footer.logout') }}</a></div>
     </aside>
 
     <main class="main" id="main-content">
       <header class="dashboard-page-header">
         <div><p class="section-kicker">Gaman / {{ active_area|upper }}</p><h1>{{ area_title }}</h1><p>{{ area_description }}</p></div>
-        {% if sample_data %}<div class="sample-label"><strong>Example data</strong><span>Connect a source to use your runs.</span></div>{% endif %}
+        {% if sample_data %}<div class="sample-label"><strong>{{ t('sample.label') }}</strong><span>{{ t('sample.copy') }}</span></div>{% endif %}
       </header>
 
       {% if active_area == 'recovery' %}{% include 'recovery_panel.html' %}{% endif %}
@@ -61,7 +61,7 @@
   </div>
 
   <nav class="mobile-product-nav" aria-label="Mobile product areas">
-    <a href="{{ url_for('index') }}"{% if active_area == 'overview' %} class="active" aria-current="page"{% endif %}>Overview</a><a href="{{ url_for('training_page') }}"{% if active_area == 'training' %} class="active" aria-current="page"{% endif %}>Training</a><a href="{{ url_for('activities_page') }}"{% if active_area == 'activities' %} class="active" aria-current="page"{% endif %}>Activities</a><a href="{{ url_for('recovery_page') }}"{% if active_area == 'recovery' %} class="active" aria-current="page"{% endif %}>Recovery</a><a href="{{ url_for('profile_page') }}"{% if active_area == 'profile' %} class="active" aria-current="page"{% endif %}>Profile</a>
+    <a href="{{ url_for('index') }}"{% if active_area == 'overview' %} class="active" aria-current="page"{% endif %}>{{ t('nav.overview') }}</a><a href="{{ url_for('training_page') }}"{% if active_area == 'training' %} class="active" aria-current="page"{% endif %}>{{ t('nav.training') }}</a><a href="{{ url_for('activities_page') }}"{% if active_area == 'activities' %} class="active" aria-current="page"{% endif %}>{{ t('nav.activities') }}</a><a href="{{ url_for('recovery_page') }}"{% if active_area == 'recovery' %} class="active" aria-current="page"{% endif %}>{{ t('nav.recovery_short') }}</a><a href="{{ url_for('profile_page') }}"{% if active_area == 'profile' %} class="active" aria-current="page"{% endif %}>{{ t('nav.profile') }}</a>
   </nav>
 
   <button class="ask-launcher" type="button" data-ask-open aria-haspopup="dialog" aria-controls="ask-panel" aria-label="Ask Gaman" title="Ask Gaman"><span class="ask-launcher-mark" aria-hidden="true">✦</span></button>

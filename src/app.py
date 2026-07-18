@@ -27,11 +27,25 @@ import training_load
 import training_store
 import workout_model
 from models import Feedback, Race, RecoveryCheckin, Run, format_pace
+from translations import translate
 
 load_dotenv(override=True)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
+
+
+def _current_lang() -> str:
+    lang = session.get("lang", "en")
+    return lang if lang in ("en", "zh") else "en"
+
+
+def t(key: str) -> str:
+    return translate(key, _current_lang())
+
+
+app.jinja_env.globals["t"] = t
+app.jinja_env.globals["lang"] = _current_lang
 
 
 def _password_ok(entered: str) -> bool:
@@ -79,17 +93,25 @@ def _render_product_area(active_area: str):
     if not session.get("authenticated"):
         return redirect(url_for("index"))
     area_titles = {
-        "overview": ("Overview", "Today’s work, recovery, and weekly direction."),
-        "training": ("Training", "Plan the week and understand the work behind it."),
-        "activities": ("Activities", "Find a run, inspect the data, and add feedback."),
-        "recovery": ("Body & Recovery", "Track symptoms and make conservative recovery decisions."),
-        "profile": ("Profile & Connections", "Manage data sources, shoes, races, and privacy."),
+        "overview": ("area.overview.title", "area.overview.desc"),
+        "training": ("area.training.title", "area.training.desc"),
+        "activities": ("area.activities.title", "area.activities.desc"),
+        "recovery": ("area.recovery.title", "area.recovery.desc"),
+        "profile": ("area.profile.title", "area.profile.desc"),
     }
     if active_area not in area_titles:
         abort(404)
+    title_key, desc_key = area_titles[active_area]
     context = _dashboard_context()
-    context.update(active_area=active_area, area_title=area_titles[active_area][0], area_description=area_titles[active_area][1])
+    context.update(active_area=active_area, area_title=t(title_key), area_description=t(desc_key))
     return render_template("dashboard.html", **context)
+
+
+@app.route("/lang/<code>")
+def set_language(code):
+    if code in ("en", "zh"):
+        session["lang"] = code
+    return redirect(request.referrer or url_for("index"))
 
 
 @app.route("/training")

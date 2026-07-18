@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="{{ lang() }}" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,13 +10,13 @@
   <meta property="og:description" content="Gaman turns Strava and Coros activity data into a practical daily running plan, training context, and recovery check-ins.">
   <meta property="og:url" content="https://www.gamanrun.com/">
   <meta property="og:type" content="website">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='sidebar-footer-20260719') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='zh-lang-toggle-20260717') }}">
 </head>
 <body class="landing-body">
-  <a class="skip-link" href="#home">Skip to content</a>
+  <a class="skip-link" href="#home">{{ t('skip_link') }}</a>
   <header class="landing-header">
     <a class="landing-wordmark" href="#home" aria-label="Gaman home">Gaman</a>
-    <nav class="landing-nav" aria-label="Landing page navigation"><a href="#home">Home</a><a href="#about">About</a><a href="{{ url_for('how_it_works_page') }}">How it works</a><a href="#access" data-login-open>Sign in</a></nav>
+    <nav class="landing-nav" aria-label="Landing page navigation"><a href="#home">{{ t('nav.home') }}</a><a href="#about">{{ t('nav.about') }}</a><a href="{{ url_for('how_it_works_page') }}">{{ t('nav.how') }}</a><a href="#access" data-login-open>{{ t('nav.signin') }}</a><a class="lang-toggle" href="{{ url_for('set_language', code='zh' if lang() == 'en' else 'en') }}">{{ '中文' if lang() == 'en' else 'EN' }}</a></nav>
   </header>
 
   <main class="landing-shell">
@@ -24,45 +24,45 @@
       <video class="landing-hero-media" autoplay muted loop playsinline preload="metadata" poster="{{ url_for('static', filename='images/gaman-0716-poster-v2.jpg') }}" aria-hidden="true">
         <source src="{{ url_for('static', filename='videos/gaman-0716-hero-full.mp4') }}" type="video/mp4">
       </video>
-      <div class="landing-content"><h1 id="landing-title">Run today, or rest?</h1><p class="landing-copy">Slept badly and the plan says intervals? Gaman checks your last seven days and tells you which one to trust.</p><button class="landing-open-dashboard" type="button" data-login-open>Open dashboard</button></div>
+      <div class="landing-content"><h1 id="landing-title">{{ t('hero.title') }}</h1><p class="landing-copy">{{ t('hero.copy') }}</p><button class="landing-open-dashboard" type="button" data-login-open>{{ t('hero.cta') }}</button></div>
     </section>
 
     <section class="landing-benefits" aria-labelledby="benefits-title">
       <div class="landing-benefits-layout">
         <div class="landing-benefits-copy">
-          <p class="section-kicker">A real Tuesday, not a demo</p>
-          <h2 id="benefits-title">Sore quads. A race in six weeks. Two easy runs already banked this week.</h2>
-          <p>That’s the input. Gaman turns it into one session, one number, and the reasoning behind both — not a dashboard you have to interpret yourself.</p>
+          <p class="section-kicker">{{ t('benefits.kicker') }}</p>
+          <h2 id="benefits-title">{{ t('benefits.title') }}</h2>
+          <p>{{ t('benefits.copy') }}</p>
         </div>
         <article class="landing-preview-card" aria-hidden="true">
-          <div class="section-heading"><div><p class="section-kicker">Today’s run</p><h3>Tempo &middot; 8 &times; 4 min</h3></div><span class="status-pill ready">Ready to train</span></div>
+          <div class="section-heading"><div><p class="section-kicker">{{ t('preview.kicker') }}</p><h3>{{ t('preview.title') }}</h3></div><span class="status-pill ready">{{ t('preview.status') }}</span></div>
           <div class="landing-preview-stats">
-            <div><small>Distance</small><strong>13.2 km</strong></div>
-            <div><small>Duration</small><strong>52 min</strong></div>
-            <div><small>Target effort</small><strong>Comfortably hard</strong></div>
+            <div><small>{{ t('preview.distance_label') }}</small><strong>{{ t('preview.distance_value') }}</strong></div>
+            <div><small>{{ t('preview.duration_label') }}</small><strong>{{ t('preview.duration_value') }}</strong></div>
+            <div><small>{{ t('preview.effort_label') }}</small><strong>{{ t('preview.effort_value') }}</strong></div>
           </div>
-          <p class="landing-preview-note">Last 7 days sit 12% below your typical week, so the load can absorb one harder session.</p>
+          <p class="landing-preview-note">{{ t('preview.note') }}</p>
         </article>
       </div>
     </section>
 
     <section class="landing-how-preview" aria-labelledby="how-preview-title">
-      <div><p class="section-kicker">How Gaman works</p><h2 id="how-preview-title">Your activity becomes a decision you can inspect.</h2><p>Measured activity data feeds transparent calculations, runner feedback adds context, and optional model guidance stays clearly labeled.</p><a class="editorial-link" href="{{ url_for('how_it_works_page') }}">See the complete method</a></div>
-      <ol class="method-track" aria-label="Gaman workflow"><li><b>01</b><span>Import</span><small>Strava or Coros</small></li><li><b>02</b><span>Compare</span><small>Load and history</small></li><li><b>03</b><span>Recommend</span><small>One practical action</small></li><li><b>04</b><span>Reflect</span><small>Your feedback</small></li></ol>
+      <div><p class="section-kicker">{{ t('how.kicker') }}</p><h2 id="how-preview-title">{{ t('how.title') }}</h2><p>{{ t('how.copy') }}</p><a class="editorial-link" href="{{ url_for('how_it_works_page') }}">{{ t('how.link') }}</a></div>
+      <ol class="method-track" aria-label="Gaman workflow"><li><b>01</b><span>{{ t('how.step1.label') }}</span><small>{{ t('how.step1.detail') }}</small></li><li><b>02</b><span>{{ t('how.step2.label') }}</span><small>{{ t('how.step2.detail') }}</small></li><li><b>03</b><span>{{ t('how.step3.label') }}</span><small>{{ t('how.step3.detail') }}</small></li><li><b>04</b><span>{{ t('how.step4.label') }}</span><small>{{ t('how.step4.detail') }}</small></li></ol>
     </section>
 
-    <section class="landing-safety" aria-labelledby="safety-title"><p class="section-kicker">Clear boundaries</p><h2 id="safety-title">Evidence where it exists. Honest limits where it does not.</h2><p>Gaman labels measured data, calculated estimates, rule-based coaching, and optional language-model guidance separately. Recovery support is educational and never a diagnosis. Urgent symptoms are directed to in-person care.</p></section>
+    <section class="landing-safety" aria-labelledby="safety-title"><p class="section-kicker">{{ t('safety.kicker') }}</p><h2 id="safety-title">{{ t('safety.title') }}</h2><p>{{ t('safety.copy') }}</p></section>
 
     <section class="landing-about" id="about" aria-labelledby="about-title">
-      <div class="landing-about-intro"><p class="section-kicker">About Gaman</p><h2 id="about-title">A running workspace built around the data you already create.</h2><p>Gaman brings activities, goals, workout feedback, shoes, and recovery check-ins into one focused system. It helps runners understand today’s session without hiding the calculations or pretending unavailable measurements exist.</p><p>The product combines direct activity measurements, transparent training-load rules, an inspectable feedback model, and conservative recovery safeguards. Each system has a defined job, and you can read the complete method before trusting a recommendation.</p></div>
-      <figure class="landing-about-photo"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="A trail leading through a misty mountain valley" loading="lazy"></figure>
+      <div class="landing-about-intro"><p class="section-kicker">{{ t('about.kicker') }}</p><h2 id="about-title">{{ t('about.title') }}</h2><p>{{ t('about.copy1') }}</p><p>{{ t('about.copy2') }}</p></div>
+      <figure class="landing-about-photo"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="{{ t('about.photo_alt') }}" loading="lazy"></figure>
     </section>
   </main>
 
-  <footer class="landing-footer"><a class="landing-wordmark" href="#home">Gaman</a><p>Training direction for runners who want to see the reasoning.</p><nav aria-label="Footer links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a><a href="{{ url_for('how_it_works_page') }}">How it works</a><a href="{{ url_for('research_page') }}">Research</a></nav></footer>
+  <footer class="landing-footer"><a class="landing-wordmark" href="#home">Gaman</a><p>{{ t('footer.tagline') }}</p><nav aria-label="Footer links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">{{ t('footer.github') }}</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a><a href="{{ url_for('how_it_works_page') }}">{{ t('footer.how') }}</a><a href="{{ url_for('research_page') }}">{{ t('footer.research') }}</a></nav></footer>
 
   <dialog class="login-dialog" id="login-dialog" data-auto-open="{{ 'true' if error else 'false' }}" aria-labelledby="login-dialog-title">
-    <form method="post" class="compact-login" id="access"><button class="login-dialog-close" type="button" data-login-close aria-label="Close password dialog"></button><div class="login-dialog-copy"><small>Gaman</small><h2 id="login-dialog-title">Open dashboard</h2><p>Enter your password to continue.</p></div>{% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}<label for="password">Password</label><input id="password" type="password" name="password" autocomplete="current-password" required><button class="login-dialog-submit" type="submit">Continue</button></form>
+    <form method="post" class="compact-login" id="access"><button class="login-dialog-close" type="button" data-login-close aria-label="Close password dialog"></button><div class="login-dialog-copy"><small>{{ t('dialog.brand') }}</small><h2 id="login-dialog-title">{{ t('dialog.title') }}</h2><p>{{ t('dialog.copy') }}</p></div>{% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}<label for="password">{{ t('dialog.password_label') }}</label><input id="password" type="password" name="password" autocomplete="current-password" required><button class="login-dialog-submit" type="submit">{{ t('dialog.submit') }}</button></form>
   </dialog>
   <script src="{{ url_for('static', filename='landing.js') }}"></script>
 </body>
