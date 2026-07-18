@@ -18,6 +18,7 @@ import race_store
 import race_prediction
 import recovery_store
 import recovery_trends
+import research_refs
 import run_analysis
 import shoe_store
 import strava_client
@@ -455,7 +456,10 @@ def create_recovery_checkin():
     recovery_store.save(RecoveryCheckin(id=secrets.token_urlsafe(10), training_context=context, guidance=guidance, urgent=urgent, created_at=datetime.now(timezone.utc).isoformat(), **payload))
     timestamps.append(datetime.now(timezone.utc).timestamp())
     session["recovery_requests"] = timestamps
-    return jsonify(guidance=guidance, urgent=urgent, training_context=context)
+    # Region-matched educational reading from the committed literature review;
+    # omitted for urgent results so the in-person care message stays the focus.
+    research = research_refs.for_areas(body_areas) if not urgent else {"references": [], "research_anchors": []}
+    return jsonify(guidance=guidance, urgent=urgent, training_context=context, references=research["references"], research_anchors=research["research_anchors"])
 
 
 ASK_RATE_LIMIT = 20

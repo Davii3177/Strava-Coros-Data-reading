@@ -3364,6 +3364,16 @@ a { color: inherit; }
 .research-content tbody tr:hover { background: color-mix(in srgb, var(--g-purple) 4%, transparent); }
 @media (max-width: 640px) { .research-page { width: calc(100% - 32px); } .research-content th, .research-content td { min-width: 130px; } }
 
+/* Region-matched reading links shown under a recovery check-in result */
+.guidance-refs-kicker { margin: 16px 0 6px; }
+.guidance-refs { margin: 0; padding-left: 18px; }
+.guidance-refs li { margin: 4px 0; font-size: .82rem; line-height: 1.5; }
+.guidance-refs a { color: var(--g-purple-dark); font-weight: 600; text-decoration: none; }
+.guidance-refs a:hover { text-decoration: underline; }
+.guidance-refs-browse { margin: 10px 0 0; font-size: .78rem; }
+.guidance-refs-browse a { color: var(--g-purple-dark); font-weight: 700; text-decoration: none; }
+.guidance-refs-browse a:hover { text-decoration: underline; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }

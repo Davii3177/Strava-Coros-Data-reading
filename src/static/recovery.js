@@ -67,11 +67,43 @@
   }
   selectorButtons.forEach(function (element) { element.addEventListener("click", function () { var area = element.dataset.area; if (selected.has(area)) selected.delete(area); else selected.add(area); updateSelection(); }); });
   pain.addEventListener("input", function () { painOutput.textContent = pain.value + " / 10"; });
-  function showResult(title, message, urgent) { result.className = "guidance-result" + (urgent ? " urgent" : ""); result.setAttribute("role", urgent ? "alert" : "status"); result.setAttribute("aria-live", urgent ? "assertive" : "polite"); result.replaceChildren(); var heading = document.createElement("p"); heading.className = "section-kicker"; heading.textContent = title; var body = document.createElement("p"); body.textContent = message; result.append(heading, body); result.hidden = false; if (urgent) { result.tabIndex = -1; result.focus(); } }
+  function showResult(title, message, urgent, references, anchors) {
+    result.className = "guidance-result" + (urgent ? " urgent" : "");
+    result.setAttribute("role", urgent ? "alert" : "status");
+    result.setAttribute("aria-live", urgent ? "assertive" : "polite");
+    result.replaceChildren();
+    var heading = document.createElement("p"); heading.className = "section-kicker"; heading.textContent = title;
+    var body = document.createElement("p"); body.textContent = message;
+    result.append(heading, body);
+    if (references && references.length) {
+      var refKicker = document.createElement("p");
+      refKicker.className = "section-kicker guidance-refs-kicker";
+      refKicker.textContent = "Region-matched reading (educational)";
+      var list = document.createElement("ul");
+      list.className = "guidance-refs";
+      references.forEach(function (ref) {
+        var item = document.createElement("li");
+        var link = document.createElement("a");
+        link.href = ref.url; link.target = "_blank"; link.rel = "noreferrer";
+        link.textContent = ref.label;
+        item.appendChild(link);
+        list.appendChild(item);
+      });
+      var browse = document.createElement("p");
+      browse.className = "guidance-refs-browse";
+      var browseLink = document.createElement("a");
+      browseLink.href = "/research#" + ((anchors && anchors[0]) || "");
+      browseLink.textContent = "Browse the full research library";
+      browse.appendChild(browseLink);
+      result.append(refKicker, list, browse);
+    }
+    result.hidden = false;
+    if (urgent) { result.tabIndex = -1; result.focus(); }
+  }
   form.addEventListener("submit", async function (event) {
     event.preventDefault(); if (!selected.size) { selectedAreas.textContent = "Choose at least one body region to continue."; selectedAreas.setAttribute("role", "alert"); selectedAreas.tabIndex = -1; selectedAreas.focus(); return; }
     var button = form.querySelector("button[type=submit]"); button.disabled = true; button.textContent = "Creating check-in…"; result.hidden = true;
     var values = new FormData(form); var payload = { body_areas: Array.from(selected), pain_level: values.get("pain_level"), onset: values.get("onset"), sensation: values.getAll("sensation"), triggers: values.getAll("triggers"), side: values.get("side"), location_detail: values.get("location_detail"), notes: values.get("notes") };
-    try { var response = await fetch("/api/recovery/checkins", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); var data = await response.json(); if (!response.ok) throw new Error(data.error || "We could not create that check-in."); showResult(data.urgent ? "Safety first" : "Your recovery note", data.guidance, data.urgent); var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; result.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" }); } catch (error) { showResult("Check-in unavailable", error.message, true); } finally { button.disabled = false; button.textContent = "Create recovery check-in"; }
+    try { var response = await fetch("/api/recovery/checkins", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); var data = await response.json(); if (!response.ok) throw new Error(data.error || "We could not create that check-in."); showResult(data.urgent ? "Safety first" : "Your recovery note", data.guidance, data.urgent, data.references, data.research_anchors); var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; result.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" }); } catch (error) { showResult("Check-in unavailable", error.message, true); } finally { button.disabled = false; button.textContent = "Create recovery check-in"; }
   });
 }());
