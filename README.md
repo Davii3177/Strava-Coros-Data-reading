@@ -31,6 +31,7 @@ The hosted app is password-protected. Ask the owner for access.
 - Detailed Body & Recovery check-ins with saved history
 - Optional server-side AI-expanded recovery education
 - **Ask Gaman**, an optional Gemini-powered chat assistant that answers training questions grounded in your logged runs, readiness, and races
+- A **research library** at `/research`: a source-cited, evidence-graded review of 110 peer-reviewed papers on running-related pain by body region, with region-matched citations shown alongside recovery check-in guidance
 - A consistent responsive light theme
 
 ## Editorial trail-running experience
@@ -100,6 +101,14 @@ The recovery endpoint includes:
 - server-side API keys only
 
 Check-ins are stored locally in `data/recovery_checkins.json`.
+
+Non-urgent check-in results also include **region-matched educational reading**: one to three peer-reviewed references per selected body area, drawn verbatim from the committed literature review (see below), with a deep link into the matching `/research` section. Urgent results omit them so the in-person care message stays the focus.
+
+## Research library
+
+`RESEARCH.md` is a source-cited, evidence-graded literature review of running-related pain and soreness — 110 individually verified peer-reviewed papers organized head-to-toe across 13 body regions, with an evidence-based treatment matrix, practical interpretation, red flags, and limitations. It is served as a styled page at `/research` (regions are deep-linkable as `/research#region-0` through `#region-12`).
+
+The page is generated from `RESEARCH.md` by `tools/build_research_page.py` (run it whenever the document changes; python-markdown is a build-time tool only, not an app dependency). A test verifies that every citation used by the recovery check-in exists verbatim in `RESEARCH.md`, so in-app references can never drift from the source document.
 
 ## Ask Gaman (optional chat assistant)
 
