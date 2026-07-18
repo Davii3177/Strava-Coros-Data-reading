@@ -10,7 +10,7 @@
   <meta property="og:description" content="Gaman turns Strava and Coros activity data into a practical daily running plan, training context, and recovery check-ins.">
   <meta property="og:url" content="https://www.gamanrun.com/">
   <meta property="og:type" content="website">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='recovery-header-20260718') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='research-page-20260718') }}">
 </head>
 <body class="landing-body">
   <a class="skip-link" href="#home">Skip to content</a>
@@ -59,7 +59,7 @@
     </section>
   </main>
 
-  <footer class="landing-footer"><a class="landing-wordmark" href="#home">Gaman</a><p>Training direction for runners who want to see the reasoning.</p><nav aria-label="Footer links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a><a href="{{ url_for('how_it_works_page') }}">How it works</a></nav></footer>
+  <footer class="landing-footer"><a class="landing-wordmark" href="#home">Gaman</a><p>Training direction for runners who want to see the reasoning.</p><nav aria-label="Footer links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a><a href="{{ url_for('how_it_works_page') }}">How it works</a><a href="{{ url_for('research_page') }}">Research</a></nav></footer>
 
   <dialog class="login-dialog" id="login-dialog" data-auto-open="{{ 'true' if error else 'false' }}" aria-labelledby="login-dialog-title">
     <form method="post" class="compact-login" id="access"><button class="login-dialog-close" type="button" data-login-close aria-label="Close password dialog"></button><div class="login-dialog-copy"><small>Gaman</small><h2 id="login-dialog-title">Open dashboard</h2><p>Enter your password to continue.</p></div>{% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}<label for="password">Password</label><input id="password" type="password" name="password" autocomplete="current-password" required><button class="login-dialog-submit" type="submit">Continue</button></form>

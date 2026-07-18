@@ -447,6 +447,24 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertIn("Urgent symptoms bypass ordinary guidance", probe.text)
         self.assertIn("No diagnosis or emergency care", probe.text)
 
+    def test_research_page_renders_the_literature_review(self):
+        response = self.client.get("/research")
+        probe = parse(response)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Running-Related Pain and Soreness", probe.text)
+        self.assertIn("110", probe.text)
+        # All 13 anatomical regions are anchored for deep links.
+        for region in range(13):
+            self.assertIn(f"region-{region}", probe.elements_by_id, f"region-{region}")
+        # The evidence tables are wrapped in scrollable containers.
+        self.assertIn("table-wrap", probe.classes)
+        self.assertIn("Evidence-Based Treatment Matrix by Condition", probe.text)
+        self.assertIn("Red Flags and Triage", probe.text)
+        # The landing page links to it.
+        landing = parse(self.client.get("/"))
+        self.assertIn("/research", {link.get("href") for link in landing.links})
+
     def test_failed_login_marks_dialog_for_auto_open(self):
         with patch.dict(app_module.os.environ, {"APP_PASSWORD": "expected-password"}):
             response = self.client.post("/", data={"password": "wrong-password"})
@@ -479,12 +497,12 @@ class DashboardRenderingContractTests(unittest.TestCase):
         public_routes = ("/", "/how-it-works")
         for route in public_routes:
             probe = parse(self.client.get(route))
-            self.assertTrue(all("recovery-header-20260718" in href for href in probe.stylesheets))
+            self.assertTrue(all("research-page-20260718" in href for href in probe.stylesheets))
 
         self.authenticate()
         for route in ("/", "/training", "/activities", "/recovery", "/profile", f"/runs/{self.runs[0].id}"):
             probe = parse(self.client.get(route))
-            self.assertTrue(all("recovery-header-20260718" in href for href in probe.stylesheets), route)
+            self.assertTrue(all("research-page-20260718" in href for href in probe.stylesheets), route)
 
     def test_ask_gaman_widget_is_present_on_dashboard(self):
         self.authenticate()

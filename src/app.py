@@ -96,6 +96,11 @@ def how_it_works_page():
     return render_template("how_it_works.html")
 
 
+@app.route("/research")
+def research_page():
+    return render_template("research.html")
+
+
 @app.route("/logout")
 def logout():
     session.pop("authenticated", None)
