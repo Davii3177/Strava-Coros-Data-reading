@@ -22,7 +22,7 @@
   <main class="landing-shell">
     <section class="landing-hero" id="home" aria-labelledby="landing-title">
       <video class="landing-hero-media" autoplay muted loop playsinline preload="metadata" poster="{{ url_for('static', filename='images/gaman-0716-poster-v2.jpg') }}" aria-hidden="true">
-        <source src="{{ url_for('static', filename='videos/gaman-0716-hero-full.mp4') }}" type="video/mp4">
+        <source src="{{ url_for('static', filename='videos/gaman-0716-hero-compressed.mp4') }}" type="video/mp4">
       </video>
       <div class="landing-content"><h1 id="landing-title">{{ t('hero.title') }}</h1><p class="landing-copy">{{ t('hero.copy') }}</p><button class="landing-open-dashboard" type="button" data-login-open>{{ t('hero.cta') }}</button></div>
     </section>

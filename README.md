@@ -66,9 +66,9 @@ The following project-local assets are original images generated for Gaman using
 
 ### Hero video
 
-The owner-supplied hero footage is served in full quality and full length (33 seconds) as:
+The owner-supplied hero footage is served at full length (33 seconds), re-encoded for web playback, as:
 
-- `src/static/videos/gaman-0716-hero-full.mp4`
+- `src/static/videos/gaman-0716-hero-compressed.mp4` (1080p, 30fps, H.264 ~3.3 Mbps, no audio track — the original 70 MB source is downsampled to keep the autoplay/loop background video from bogging down playback the longer a visitor stays on the page)
 
 The poster (`gaman-0716-poster-v2.jpg`) is used for reduced-motion preferences, small screens, and data-saver connections. The video file is local, so the homepage has no third-party media dependency.
 

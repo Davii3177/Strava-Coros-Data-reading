@@ -228,7 +228,7 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertEqual(
             probe.video_sources,
             [
-                {"src": "/static/videos/gaman-0716-hero-full.mp4", "type": "video/mp4"},
+                {"src": "/static/videos/gaman-0716-hero-compressed.mp4", "type": "video/mp4"},
             ],
         )
         for source in probe.video_sources:
