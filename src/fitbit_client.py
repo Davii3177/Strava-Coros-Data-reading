@@ -250,7 +250,7 @@ _STAGE_BUCKET = {"DEEP": "deep_min", "REM": "rem_min", "LIGHT": "light_min", "AW
 
 def fetch_sleep(limit: int = 7) -> list[SleepNight]:
     if not is_configured():
-        return _sample_sleep(limit)
+        return []
     nights = [_to_sleep(p) for p in _get_points("sleep", limit)]
     nights = [n for n in nights if n.in_bed_min > 0]
     nights.sort(key=lambda n: n.date, reverse=True)
@@ -288,7 +288,7 @@ def _to_sleep(dp: dict) -> SleepNight:
 
 def fetch_resting_hr(limit: int = 14) -> list[DailyValue]:
     if not is_configured():
-        return _sample_resting_hr(limit)
+        return []
     values = [v for v in (_to_daily_hr(p) for p in _get_points("daily-resting-heart-rate", limit)) if v]
     values.sort(key=lambda v: v.date, reverse=True)
     return values[:limit]

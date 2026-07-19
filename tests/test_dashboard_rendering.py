@@ -525,6 +525,19 @@ class DashboardRenderingContractTests(unittest.TestCase):
         # HRV has no sample data, so its unavailable state should render
         self.assertIn("Not synced from your devices.", body)
 
+    def test_recovery_page_hides_measured_card_without_wearable_data(self):
+        self.authenticate()
+        with patch.object(
+            app_module,
+            "_recovery_metrics",
+            return_value={"sleep": [], "resting_hr": [], "hrv": []},
+        ):
+            body = self.client.get("/recovery").get_data(as_text=True)
+
+        self.assertNotIn('id="recovery-metrics"', body)
+        self.assertNotIn("Measured recovery data", body)
+        self.assertIn("Educational recovery guidance", body)
+
     def test_ask_gaman_widget_is_present_on_dashboard(self):
         self.authenticate()
         probe = parse(self.client.get("/"))
