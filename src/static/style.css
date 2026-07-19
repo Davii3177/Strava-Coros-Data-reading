@@ -3889,3 +3889,117 @@ a { color: inherit; }
   .landing-about-photo img { transform: none; }
 }
 
+
+/* ============================================================
+   Training load card 鈥?light surface, matching the rest of the page.
+
+   This card had accumulated conflicting colour rules across several
+   revisions: the last background declaration made it near-black while a
+   number of descendants were still inheriting dark text from earlier
+   blocks. "See the evidence" resolved to #171419 on a #17151A card, i.e.
+   invisible, and the "Last 7 days" / "Typical week" labels sat at roughly
+   2.3:1 contrast.
+
+   Rather than add another partial patch, this block is authoritative for
+   every text node in the card. Colours come from the --g-* tokens so the
+   card tracks the rest of the design system.
+   ============================================================ */
+.dashboard-body .readiness-card {
+  border: 1px solid var(--g-line);
+  border-top: 3px solid var(--g-purple);
+  border-radius: var(--g-radius);
+  background: var(--g-surface);
+  color: var(--g-ink);
+}
+
+/* Headings and figures 鈥?full-strength ink. */
+.dashboard-body .readiness-card h2,
+.dashboard-body .readiness-card strong,
+.dashboard-body .readiness-card b,
+.dashboard-body .readiness-card .load-comparison strong,
+.dashboard-body .readiness-card .why-details summary,
+.dashboard-body .readiness-card .why-details li {
+  color: var(--g-ink);
+}
+
+/* Labels and secondary copy 鈥?muted, still AA at 5.9:1 on white. */
+.dashboard-body .readiness-card .supporting-copy,
+.dashboard-body .readiness-card .load-change,
+.dashboard-body .readiness-card .missing-data,
+.dashboard-body .readiness-card .load-comparison small,
+.dashboard-body .readiness-card small,
+.dashboard-body .readiness-card p,
+.dashboard-body .readiness-card .why-details ul {
+  color: var(--g-muted);
+}
+
+.dashboard-body .readiness-card .section-kicker { color: var(--g-purple); }
+
+/* Rules and dividers. */
+.dashboard-body .readiness-card .load-comparison,
+.dashboard-body .readiness-card .why-details { border-color: var(--g-line); }
+.dashboard-body .readiness-card .load-comparison div { background: transparent; }
+.dashboard-body .readiness-card .load-comparison div + div { border-left: 1px solid var(--g-line); }
+
+.dashboard-body .readiness-card .load-bar {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--g-surface-muted);
+}
+.dashboard-body .readiness-card .load-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--g-purple);
+}
+
+/* Footer link reads as an action against the light surface. */
+.dashboard-body .readiness-recovery-link {
+  border: 1px solid var(--g-purple);
+  background: transparent;
+  color: var(--g-purple);
+}
+.dashboard-body .readiness-recovery-link:hover,
+.dashboard-body .readiness-recovery-link:focus-visible {
+  border-color: var(--g-purple);
+  background: var(--g-purple);
+  color: #fff;
+}
+
+
+/* ============================================================
+   Training area 鈥?vertical rhythm.
+
+   Every card in .daily-stack carries margin-bottom: 0, and .companion-grid
+   (Race goal / Personal bests) had no bottom margin either, so it sat flush
+   against the Training calendar card below it 鈥?a 0px gap.
+
+   Rather than patch that one seam, set a single rhythm for the stack. 26px
+   matches the gap .companion-grid already uses between its own columns, so
+   horizontal and vertical spacing agree.
+   ============================================================ */
+.dashboard-body .daily-stack > * + * { margin-top: 26px; }
+/* .dashboard-body .daily-stack .card sets margin:0 at (0,3,0), so cards need
+   a matching-specificity rule to pick the rhythm up. */
+.dashboard-body .daily-stack > * + .card,
+.dashboard-body .daily-stack > * + .companion-grid { margin-top: 26px; }
+.dashboard-body .companion-grid { margin-bottom: 0; }
+
+/* Calendar: 7px cells made the month read as a dense block. */
+.dashboard-body .calendar th {
+  padding: 0 10px 12px;
+  text-align: left;
+}
+.dashboard-body .calendar td {
+  padding: 10px;
+  vertical-align: top;
+}
+.dashboard-body .calendar .cal-date { margin-bottom: 6px; }
+.dashboard-body .calendar .cal-run,
+.dashboard-body .calendar .cal-suggested,
+.dashboard-body .calendar .cal-race {
+  margin-top: 4px;
+  padding: 3px 6px;
+}
+.dashboard-body #calendar .table-wrap { margin-top: 20px; }
+
