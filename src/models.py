@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 
 KM_TO_MILES = 0.621371
 
@@ -19,7 +19,7 @@ def format_pace(pace_min_km: float) -> str:
 class Run:
     id: str
     date: date
-    source: str  # "strava" or "coros"
+    source: str  # "strava", "coros", or "fitbit"
     distance_km: float
     duration_min: float
     avg_hr: int
@@ -90,3 +90,42 @@ class Shoe:
     purchase_date: str
     replacement_km: float | None
     retired: bool = False
+
+
+@dataclass
+class SleepNight:
+    """A single night's sleep, summarized from stage segments.
+
+    Sourced via the Google Health API (which may aggregate a Fitbit, Coros, or
+    other device). Durations are minutes; asleep_min excludes time awake in bed.
+    """
+
+    id: str
+    date: date  # local calendar day the runner woke up
+    start: datetime
+    end: datetime
+    in_bed_min: float
+    asleep_min: float
+    deep_min: float
+    rem_min: float
+    light_min: float
+    awake_min: float
+    source: str  # friendly device/app label, e.g. "Coros", "Fitbit"
+
+    @property
+    def efficiency_pct(self) -> int:
+        return round(self.asleep_min / self.in_bed_min * 100) if self.in_bed_min else 0
+
+    @property
+    def asleep_str(self) -> str:
+        total = round(self.asleep_min)
+        return f"{total // 60}h {total % 60:02d}m"
+
+
+@dataclass
+class DailyValue:
+    """A once-per-day measurement (e.g. resting heart rate, HRV)."""
+
+    date: date
+    value: float
+    source: str

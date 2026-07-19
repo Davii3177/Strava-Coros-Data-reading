@@ -1,3 +1,62 @@
+{% if recovery_metrics and (recovery_metrics.sleep or recovery_metrics.resting_hr or recovery_metrics.hrv) %}
+{% set nights = recovery_metrics.sleep %}
+{% set rhr = recovery_metrics.resting_hr %}
+{% set hrv = recovery_metrics.hrv %}
+<section class="card recovery-metrics-card" id="recovery-metrics">
+  <div class="section-heading">
+    <div><p class="section-kicker">Measured recovery data</p><h2>Sleep &amp; heart</h2><p class="section-description">Objective signals from your connected wearable. They inform the picture but never override how you actually feel.</p></div>
+    {% if nights %}<span class="tag">via {{ nights[0].source }}</span>{% elif rhr %}<span class="tag">via {{ rhr[0].source }}</span>{% endif %}
+  </div>
+  <div class="rm-grid">
+    {% if nights %}
+      {% set night = nights[0] %}
+      {% set total = night.deep_min + night.rem_min + night.light_min + night.awake_min %}
+      <article class="rm-tile rm-sleep">
+        <p class="rm-label">Last sleep · {{ night.date.strftime('%a %b %d') }}</p>
+        <p class="rm-figure">{{ night.asleep_str }}<span class="rm-unit"> asleep</span></p>
+        <p class="rm-sub">{{ night.efficiency_pct }}% efficiency · {{ (night.in_bed_min / 60)|round(1) }} h in bed</p>
+        <div class="sleep-stage-bar" role="img" aria-label="Sleep stages — deep {{ night.deep_min|round|int }} min, REM {{ night.rem_min|round|int }} min, light {{ night.light_min|round|int }} min, awake {{ night.awake_min|round|int }} min">
+          {% if total %}
+          <span class="seg seg-deep" style="width: {{ (night.deep_min / total * 100)|round(1) }}%"></span>
+          <span class="seg seg-rem" style="width: {{ (night.rem_min / total * 100)|round(1) }}%"></span>
+          <span class="seg seg-light" style="width: {{ (night.light_min / total * 100)|round(1) }}%"></span>
+          <span class="seg seg-awake" style="width: {{ (night.awake_min / total * 100)|round(1) }}%"></span>
+          {% endif %}
+        </div>
+        <ul class="rm-legend">
+          <li><span class="dot seg-deep"></span>Deep {{ night.deep_min|round|int }}m</li>
+          <li><span class="dot seg-rem"></span>REM {{ night.rem_min|round|int }}m</li>
+          <li><span class="dot seg-light"></span>Light {{ night.light_min|round|int }}m</li>
+          <li><span class="dot seg-awake"></span>Awake {{ night.awake_min|round|int }}m</li>
+        </ul>
+      </article>
+    {% endif %}
+    <article class="rm-tile">
+      <p class="rm-label">Resting heart rate</p>
+      {% if rhr %}
+        {% set rvals = rhr[:10]|map(attribute='value')|list %}
+        {% set rmin = rvals|min %}{% set rmax = rvals|max %}{% set rspread = (rmax - rmin) or 1 %}
+        <p class="rm-figure">{{ rhr[0].value|round|int }}<span class="rm-unit"> bpm</span></p>
+        <p class="rm-sub">latest · {{ rhr[0].date.strftime('%b %d') }}{% if rvals|length > 1 %} · range {{ rmin|round|int }}–{{ rmax|round|int }}{% endif %}</p>
+        <div class="rm-spark" role="img" aria-label="Recent resting heart rate trend">
+          {% for v in rhr[:10]|reverse %}<span class="rm-bar" style="height: {{ (25 + (v.value - rmin) / rspread * 75)|round }}%" title="{{ v.date }} · {{ v.value|round|int }} bpm"></span>{% endfor %}
+        </div>
+      {% else %}
+        <p class="rm-figure rm-none">—</p><p class="rm-sub">No resting HR synced yet.</p>
+      {% endif %}
+    </article>
+    <article class="rm-tile">
+      <p class="rm-label">Heart rate variability</p>
+      {% if hrv %}
+        <p class="rm-figure">{{ hrv[0].value|round|int }}<span class="rm-unit"> ms</span></p>
+        <p class="rm-sub">latest · {{ hrv[0].date.strftime('%b %d') }}</p>
+      {% else %}
+        <p class="rm-figure rm-none">—</p><p class="rm-sub">Not synced from your devices.</p>
+      {% endif %}
+    </article>
+  </div>
+</section>
+{% endif %}
 <section class="card recovery-card" id="recovery">
   <div class="section-heading">
     <div><p class="section-kicker">Educational recovery guidance</p><h2>Check in with your body</h2></div>

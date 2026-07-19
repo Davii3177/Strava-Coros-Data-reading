@@ -13,6 +13,7 @@ from flask import Flask, Response, abort, jsonify, redirect, render_template, re
 import analysis
 import coros_client
 import feedback_store
+import fitbit_client
 import personal_records
 import planning
 import race_store
@@ -104,6 +105,8 @@ def _render_product_area(active_area: str):
     title_key, desc_key = area_titles[active_area]
     context = _dashboard_context()
     context.update(active_area=active_area, area_title=t(title_key), area_description=t(desc_key))
+    if active_area == "recovery":
+        context["recovery_metrics"] = _recovery_metrics()
     return render_template("dashboard.html", **context)
 
 
@@ -355,10 +358,12 @@ def export_recovery():
 def _all_runs() -> list[Run]:
     strava_configured = strava_client.is_configured()
     coros_configured = coros_client.is_configured()
-    if not strava_configured and not coros_configured:
-        runs = strava_client.fetch_runs(limit=50) + coros_client.fetch_runs(limit=50)
+    fitbit_configured = fitbit_client.is_configured()
+    if not strava_configured and not coros_configured and not fitbit_configured:
+        runs = strava_client.fetch_runs(limit=50) + coros_client.fetch_runs(limit=50) + fitbit_client.fetch_runs(limit=50)
     else:
         runs = strava_client.fetch_runs(limit=50) if strava_configured else []
+        runs += fitbit_client.fetch_runs(limit=50) if fitbit_configured else []
         if coros_configured:
             try:
                 runs += coros_client.fetch_runs(limit=50)
@@ -368,10 +373,24 @@ def _all_runs() -> list[Run]:
     return runs
 
 
+def _recovery_metrics() -> dict:
+    """Objective recovery signals (sleep, resting HR, HRV) from the Google
+    Health / Fitbit connection. Guarded so a Health API hiccup or an
+    unconnected source never breaks the Recovery page."""
+    try:
+        return {
+            "sleep": fitbit_client.fetch_sleep(limit=7),
+            "resting_hr": fitbit_client.fetch_resting_hr(limit=14),
+            "hrv": fitbit_client.fetch_hrv(limit=14),
+        }
+    except Exception:
+        return {"sleep": [], "resting_hr": [], "hrv": []}
+
+
 # Validated (CVD-safe, contrast-checked on both the light and dark surfaces
 # in style.css) categorical colors, one per data source. Kept separate from
 # the UI accent color so chart identity stays separate from interface actions.
-SOURCE_COLORS = {"strava": "#7550a6", "coros": "#77717c"}
+SOURCE_COLORS = {"strava": "#7550a6", "coros": "#77717c", "fitbit": "#00838f"}
 
 BODY_AREAS = {
     "head_face", "jaw", "neck", "collarbones", "shoulders", "biceps_triceps",
@@ -759,6 +778,7 @@ def _dashboard_context() -> dict:
     context = {
         "strava_connected": strava_client.is_configured(),
         "coros_connected": coros_client.is_configured(),
+        "fitbit_connected": fitbit_client.is_configured(),
         "runs": runs,
         "feedback_by_run": feedback_by_run,
         "feedback_runs": _feedback_runs(runs, feedback_by_run, feedback_store.load_dismissed(), today),

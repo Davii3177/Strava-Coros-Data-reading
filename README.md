@@ -141,6 +141,7 @@ read only on the server.
 - Flask and Jinja templates
 - Plotly charts
 - Strava API integration
+- Fitbit integration via the Google Health API
 - Coros client scaffold with sample-data fallback
 - Pure-Python trained workout model (in-house ordinary-least-squares fit, no external ML dependency)
 - Optional OpenAI and Google Gemini API integrations (recovery education and Ask Gaman)
@@ -175,7 +176,7 @@ read only on the server.
    python app.py
    ```
 
-The default local address is `http://127.0.0.1:8502/`. When neither Strava nor Coros is connected, Gaman uses clearly labeled sample activities so the dashboard remains usable. Sample activities are never mixed into a connected user's real metrics.
+The default local address is `http://127.0.0.1:8502/`. When none of Strava, Coros, or Fitbit is connected, Gaman uses clearly labeled sample activities so the dashboard remains usable. Sample activities are never mixed into a connected user's real metrics.
 
 ## Environment variables
 
@@ -189,6 +190,9 @@ The default local address is `http://127.0.0.1:8502/`. When neither Strava nor C
 | `STRAVA_REFRESH_TOKEN` | No | Refresh token with activity access |
 | `COROS_CLIENT_ID` | No | Reserved for Coros integration |
 | `COROS_CLIENT_SECRET` | No | Reserved for Coros integration |
+| `GOOGLE_HEALTH_CLIENT_ID` | No | Google Cloud OAuth 2.0 client ID for Fitbit data via the Google Health API |
+| `GOOGLE_HEALTH_CLIENT_SECRET` | No | Google Cloud OAuth 2.0 client secret |
+| `GOOGLE_HEALTH_REFRESH_TOKEN` | No | Refresh token with the `googlehealth.activity_and_fitness.readonly` scope |
 | `OPENAI_API_KEY` | No | Enables optional AI-expanded recovery education |
 | `OPENAI_MODEL` | No | Selects the optional server-side model; defaults to `gpt-4o-mini` |
 | `GEMINI_API_KEY` | No | Enables the optional Ask Gaman chat assistant |
@@ -209,6 +213,30 @@ Never expose API credentials in templates or client-side JavaScript.
    ```
 
 4. Open the displayed URL and authorize activity access. The helper writes `STRAVA_REFRESH_TOKEN` to `.env`.
+
+## Connecting Fitbit (Google Health API)
+
+Google is retiring the legacy Fitbit Web API (`dev.fitbit.com`) in **September 2026** and replacing it with the [Google Health API](https://developers.google.com/health/migration), which uses standard Google OAuth 2.0. Gaman targets the new API, so Fitbit connections use **Google Cloud** credentials rather than a `dev.fitbit.com` app.
+
+1. In the [Google Cloud Console](https://console.cloud.google.com/), create (or pick) a project and **enable the Google Health API**.
+2. Configure the **OAuth consent screen**: add the scope `https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly`, and — while the app is unverified (publishing status "Testing") — add your own Google account under **Test users**.
+3. Create an **OAuth 2.0 Client ID** (Application type: **Web application**) and add `http://localhost:8000/callback` to its **Authorized redirect URIs** (Google requires an exact match).
+4. Put the client ID and secret into `.env` as `GOOGLE_HEALTH_CLIENT_ID` and `GOOGLE_HEALTH_CLIENT_SECRET`.
+5. Run the OAuth helper and sign in with the Google account your Fitbit is linked to:
+
+   ```bash
+   cd src
+   python fitbit_auth_server.py
+   ```
+
+6. Open the displayed URL, authorize activity access, and the helper writes `GOOGLE_HEALTH_REFRESH_TOKEN` to `.env`.
+
+**Two Google-specific gotchas:**
+
+- **Restricted scopes.** The `googlehealth.*` scopes are Restricted. Personal/test use works with the app in "Testing" status and your account added as a test user; publishing to Production (needed for other people, or to stop the token expiring) requires Google's security assessment.
+- **7-day refresh token in Testing.** Google expires refresh tokens after ~7 days while an app is in "Testing" status, so you'll re-run the helper weekly until the app is verified/Production. Google refresh tokens do **not** rotate on each use, so no `.env` rewriting happens during normal fetches (unlike the old Fitbit API).
+
+> **Field-mapping note:** Google's public reference does not yet fully document the leaf field names inside an `exercise` data point (distance, duration, heart rate). `src/fitbit_client.py` maps them best-effort and resiliently; if real runs come back with zeros, capture one raw response and tighten the candidate keys in `_to_run` / `_find`.
 
 ## Tests
 
@@ -242,6 +270,7 @@ The unified activity model currently includes date, source, distance, duration, 
 
 - [x] Gaman responsive dashboard and startup experience
 - [x] Strava authorization and activity fetching
+- [x] Fitbit authorization and activity fetching (Google Health API)
 - [x] Rule-based training analysis and workout generation
 - [x] Feedback-trained workout adjustment
 - [x] Race calendar and tapering logic

@@ -189,6 +189,17 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.patches.enter_context(
             patch.object(app_module.shoe_store, "assignments", return_value={})
         )
+        self.patches.enter_context(
+            patch.object(
+                app_module,
+                "_recovery_metrics",
+                return_value={
+                    "sleep": app_module.fitbit_client._sample_sleep(3),
+                    "resting_hr": app_module.fitbit_client._sample_resting_hr(7),
+                    "hrv": [],
+                },
+            )
+        )
         self.client = app_module.app.test_client()
 
     def tearDown(self):
@@ -497,12 +508,22 @@ class DashboardRenderingContractTests(unittest.TestCase):
         public_routes = ("/", "/how-it-works")
         for route in public_routes:
             probe = parse(self.client.get(route))
-            self.assertTrue(all("zh-lang-toggle-20260717" in href for href in probe.stylesheets))
+            self.assertTrue(all("recovery-metrics-20260718" in href for href in probe.stylesheets))
 
         self.authenticate()
         for route in ("/", "/training", "/activities", "/recovery", "/profile", f"/runs/{self.runs[0].id}"):
             probe = parse(self.client.get(route))
-            self.assertTrue(all("zh-lang-toggle-20260717" in href for href in probe.stylesheets), route)
+            self.assertTrue(all("recovery-metrics-20260718" in href for href in probe.stylesheets), route)
+
+    def test_recovery_page_shows_measured_recovery_data(self):
+        self.authenticate()
+        body = self.client.get("/recovery").get_data(as_text=True)
+        self.assertIn("Measured recovery data", body)
+        self.assertIn("asleep", body)  # sleep summary tile
+        self.assertIn("Resting heart rate", body)
+        self.assertIn("bpm", body)
+        # HRV has no sample data, so its unavailable state should render
+        self.assertIn("Not synced from your devices.", body)
 
     def test_ask_gaman_widget_is_present_on_dashboard(self):
         self.authenticate()

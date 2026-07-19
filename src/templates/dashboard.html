@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ area_title }} - Gaman</title>
   <meta name="description" content="{{ area_description }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='zh-lang-toggle-20260717') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='recovery-metrics-20260718') }}">
 </head>
 <body class="dashboard-body area-{{ active_area }}">
   <a class="skip-link" href="#main-content">{{ t('skip_link') }}</a>
@@ -22,6 +22,7 @@
       <div class="connections" aria-label="Connection status">
         <p class="conn-line{{ '' if strava_connected else ' conn-off' }}">{{ t('conn.strava_connected') if strava_connected else t('conn.strava_not_connected') }}</p>
         <p class="conn-line{{ '' if coros_connected else ' conn-off' }}">{{ t('conn.coros_connected') if coros_connected else t('conn.coros_not_connected') }}</p>
+        <p class="conn-line{{ '' if fitbit_connected else ' conn-off' }}">{{ t('conn.fitbit_connected') if fitbit_connected else t('conn.fitbit_not_connected') }}</p>
       </div>
       <div class="sidebar-footer"><a href="{{ url_for('how_it_works_page') }}">{{ t('footer.how') }}</a><a href="{{ url_for('research_page') }}">{{ t('footer.research') }}</a><a href="{{ url_for('logout') }}">{{ t('footer.logout') }}</a></div>
     </aside>
@@ -36,7 +37,7 @@
       {% include 'daily_companion.html' %}
 
       {% if active_area in ['training', 'activities'] and not runs %}
-      <section class="card empty-card"><p class="section-kicker">Getting started</p><h2>Connect a source to begin</h2><p>When Strava or Coros activities arrive, this page will show your real training data.</p></section>
+      <section class="card empty-card"><p class="section-kicker">Getting started</p><h2>Connect a source to begin</h2><p>When Strava, Coros, or Fitbit activities arrive, this page will show your real training data.</p></section>
       {% endif %}
 
       {% if active_area == 'training' %}
@@ -52,7 +53,7 @@
 
       {% if active_area == 'profile' %}
       <section class="profile-grid" aria-label="Profile settings">
-        <article class="card connection-card"><p class="section-kicker">Data sources</p><h2>Connections</h2><div class="connection-row"><span><strong>Strava</strong><small>Activity import</small></span><b>{{ 'Connected' if strava_connected else 'Not configured' }}</b></div><div class="connection-row"><span><strong>Coros</strong><small>Activity import</small></span><b>{{ 'Connected' if coros_connected else 'Not configured' }}</b></div><p class="caption">Credentials stay on the server and are never placed in browser code.</p></article>
+        <article class="card connection-card"><p class="section-kicker">Data sources</p><h2>Connections</h2><div class="connection-row"><span><strong>Strava</strong><small>Activity import</small></span><b>{{ 'Connected' if strava_connected else 'Not configured' }}</b></div><div class="connection-row"><span><strong>Coros</strong><small>Activity import</small></span><b>{{ 'Connected' if coros_connected else 'Not configured' }}</b></div><div class="connection-row"><span><strong>Fitbit</strong><small>Activity import</small></span><b>{{ 'Connected' if fitbit_connected else 'Not configured' }}</b></div><p class="caption">Credentials stay on the server and are never placed in browser code.</p></article>
         <article class="card privacy-card"><p class="section-kicker">Privacy</p><h2>Your data stays inspectable</h2><p>Gaman uses the activity fields supplied by your sources and labels unavailable measurements instead of inventing them.</p><a class="text-action" href="{{ url_for('how_it_works_page') }}">Read how guidance works</a></article>
       </section>
       <section class="about-panel" id="about"><div><p class="section-kicker">About Gaman</p><h2>Built around the data runners already create.</h2></div><div><p>Bring activities, goals, feedback, shoes, and recovery check-ins into one focused workspace.</p><div class="about-links"><a href="https://github.com/Davii3177/Strava-Coros-Data-reading" target="_blank" rel="noreferrer">GitHub</a><a href="mailto:davidch3@andrew.cmu.edu">davidch3@andrew.cmu.edu</a></div></div><figure class="about-nature"><img src="{{ url_for('static', filename='images/gaman-mountain-valley.jpg') }}" width="1536" height="1024" alt="A trail leading through a misty mountain valley" loading="lazy"></figure></section>
