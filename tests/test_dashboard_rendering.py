@@ -519,6 +519,7 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.authenticate()
         body = self.client.get("/recovery").get_data(as_text=True)
         self.assertIn("Measured recovery data", body)
+        self.assertIn("via Google Health", body)
         self.assertIn("asleep", body)  # sleep summary tile
         self.assertIn("Resting heart rate", body)
         self.assertIn("bpm", body)

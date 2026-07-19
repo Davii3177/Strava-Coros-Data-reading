@@ -5,7 +5,7 @@
 <section class="card recovery-metrics-card" id="recovery-metrics">
   <div class="section-heading">
     <div><p class="section-kicker">Measured recovery data</p><h2>Sleep &amp; heart</h2><p class="section-description">Objective signals from your connected wearable. They inform the picture but never override how you actually feel.</p></div>
-    {% if nights %}<span class="tag">via {{ nights[0].source }}</span>{% elif rhr %}<span class="tag">via {{ rhr[0].source }}</span>{% endif %}
+    {% if nights %}<span class="tag" title="Recorded by {{ nights[0].source }}">via Google Health</span>{% elif rhr %}<span class="tag" title="Recorded by {{ rhr[0].source }}">via Google Health</span>{% endif %}
   </div>
   <div class="rm-grid">
     {% if nights %}
