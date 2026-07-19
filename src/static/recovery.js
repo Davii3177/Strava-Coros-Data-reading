@@ -58,12 +58,43 @@
   var pain = document.getElementById("pain-level");
   var painOutput = document.getElementById("pain-output");
   var result = document.getElementById("guidance-result");
+  var steps = Array.from(form.querySelectorAll("[data-recovery-step]"));
+  var stepIndicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
+
+  function showStep(number, focusHeading) {
+    steps.forEach(function (step) {
+      step.hidden = Number(step.dataset.recoveryStep) !== number;
+    });
+    stepIndicators.forEach(function (indicator) {
+      var active = Number(indicator.dataset.stepIndicator) === number;
+      indicator.classList.toggle("is-active", active);
+      if (active) indicator.setAttribute("aria-current", "step");
+      else indicator.removeAttribute("aria-current");
+    });
+    if (focusHeading) {
+      var heading = form.querySelector('[data-recovery-step="' + number + '"] h3');
+      if (heading) { heading.tabIndex = -1; heading.focus(); }
+    }
+  }
+
+  form.querySelectorAll("[data-step-next]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (button.dataset.stepNext === "2" && !selected.size) return;
+      showStep(Number(button.dataset.stepNext), true);
+    });
+  });
+  form.querySelectorAll("[data-step-back]").forEach(function (button) {
+    button.addEventListener("click", function () { showStep(Number(button.dataset.stepBack), true); });
+  });
+
   function labelFor(area) { var found = BODY_REGIONS.find(function (region) { return region[1] === area; }); return found ? found[2] : area; }
   function updateSelection() {
     selectorButtons.forEach(function (element) { var active = selected.has(element.dataset.area); element.classList.toggle("is-selected", active); if (element.tagName === "BUTTON") element.setAttribute("aria-pressed", active); });
     selectedAreas.textContent = selected.size ? Array.from(selected).map(labelFor).join(" · ") : "Select one or more body regions";
     selectedAreas.classList.toggle("has-selection", Boolean(selected.size));
     selectedAreas.removeAttribute("role");
+    var firstNext = form.querySelector('[data-step-next="2"]');
+    if (firstNext) firstNext.disabled = !selected.size;
   }
   selectorButtons.forEach(function (element) { element.addEventListener("click", function () { var area = element.dataset.area; if (selected.has(area)) selected.delete(area); else selected.add(area); updateSelection(); }); });
   pain.addEventListener("input", function () { painOutput.textContent = pain.value + " / 10"; });
@@ -101,7 +132,7 @@
     if (urgent) { result.tabIndex = -1; result.focus(); }
   }
   form.addEventListener("submit", async function (event) {
-    event.preventDefault(); if (!selected.size) { selectedAreas.textContent = "Choose at least one body region to continue."; selectedAreas.setAttribute("role", "alert"); selectedAreas.tabIndex = -1; selectedAreas.focus(); return; }
+    event.preventDefault(); if (!selected.size) { showStep(1, false); selectedAreas.textContent = "Choose at least one body region to continue."; selectedAreas.setAttribute("role", "alert"); selectedAreas.tabIndex = -1; selectedAreas.focus(); return; }
     var button = form.querySelector("button[type=submit]"); button.disabled = true; button.textContent = "Creating check-in…"; result.hidden = true;
     var values = new FormData(form); var payload = { body_areas: Array.from(selected), pain_level: values.get("pain_level"), onset: values.get("onset"), sensation: values.getAll("sensation"), triggers: values.getAll("triggers"), side: values.get("side"), location_detail: values.get("location_detail"), notes: values.get("notes") };
     try { var csrf = document.querySelector('meta[name="csrf-token"]'); var response = await fetch("/api/recovery/checkins", { method: "POST", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf ? csrf.content : "" }, body: JSON.stringify(payload) }); var data = await response.json(); if (!response.ok) throw new Error(data.error || "We could not create that check-in."); showResult(data.urgent ? "Safety first" : "Your recovery note", data.guidance, data.urgent, data.references, data.research_anchors); var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; result.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "nearest" }); } catch (error) { showResult("Check-in unavailable", error.message, true); } finally { button.disabled = false; button.textContent = "Create recovery check-in"; }

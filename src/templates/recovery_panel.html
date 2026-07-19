@@ -62,26 +62,43 @@
     <div><p class="section-kicker">Educational recovery guidance</p><h2>Check in with your body</h2></div>
     <span class="safety-label">Not a diagnosis</span>
   </div>
-  <p class="recovery-intro">Choose every area that needs attention and describe what you feel. Recent training is added when available. Urgent symptoms bypass ordinary guidance.</p>
-  <div class="recovery-layout">
-    <div class="anatomy-panel">
-      <p class="panel-label">Choose a body region</p>
-      <p class="body-help" id="body-help">Select the illustration or use the labeled buttons. Multiple areas are supported.</p>
-      <div class="mannequin-wrap" aria-describedby="body-help">
-        <svg class="mannequin" viewBox="0 0 365 590" aria-hidden="true"><text x="95" y="290">Loading front view</text><text x="235" y="290">Loading back view</text></svg>
-      </div>
-      <div class="region-list" id="region-list"><button type="button" data-area="neck" aria-pressed="false">Neck</button><button type="button" data-area="shoulders" aria-pressed="false">Shoulders</button><button type="button" data-area="lower_back" aria-pressed="false">Lower back</button><button type="button" data-area="kneecap" aria-pressed="false">Kneecap</button><button type="button" data-area="shins" aria-pressed="false">Shins</button><button type="button" data-area="calves" aria-pressed="false">Calves</button><button type="button" data-area="achilles" aria-pressed="false">Achilles</button><button type="button" data-area="feet" aria-pressed="false">Feet / arches</button></div>
-    </div>
-
+  <p class="recovery-intro">Three short steps. You can select more than one area.</p>
+  <div class="recovery-wizard">
+    <ol class="recovery-steps" aria-label="Check-in progress">
+      <li class="is-active" data-step-indicator="1"><span>1</span> Area</li>
+      <li data-step-indicator="2"><span>2</span> Symptoms</li>
+      <li data-step-indicator="3"><span>3</span> Notes</li>
+    </ol>
     <form class="recovery-form" id="recovery-form">
-      <div id="selected-areas" class="selected-areas">Select one or more body regions</div>
-      <label>Pain level <output id="pain-output">5 / 10</output><input id="pain-level" name="pain_level" type="range" min="1" max="10" value="5"></label>
-      <label>When did it begin?<select name="onset"><option value="gradual">Gradually</option><option value="sudden">Suddenly</option><option value="after_run">After a specific run</option></select></label>
-      <fieldset><legend>What does it feel like?</legend>{% for value in ['sharp','dull','tight','sore','burning','numb','tingling'] %}<label class="check"><input type="checkbox" name="sensation" value="{{ value }}"> {{ value }}</label>{% endfor %}</fieldset>
-      <fieldset><legend>When does it bother you?</legend>{% for value in ['running','walking','rest','movement'] %}<label class="check"><input type="checkbox" name="triggers" value="{{ value }}"> {{ value }}</label>{% endfor %}</fieldset>
-      <label>Anything important to share?<textarea name="notes" maxlength="1000" placeholder="Example: pain after hills, swelling, or a recent fall."></textarea></label>
-      <p class="form-note">Chest pain, breathing trouble, severe pain, new numbness or weakness, deformity, or inability to bear weight needs prompt in-person medical attention.</p>
-      <button class="primary-button" type="submit">Create recovery check-in</button>
+      <section class="recovery-step" data-recovery-step="1" aria-labelledby="recovery-step-1-title">
+        <div class="step-heading"><p class="section-kicker">Step 1 of 3</p><h3 id="recovery-step-1-title">Where do you feel it?</h3><p id="body-help">Choose the illustration or a label below.</p></div>
+        <div class="anatomy-panel">
+          <div class="mannequin-wrap" aria-describedby="body-help">
+            <svg class="mannequin" viewBox="0 0 365 590" aria-hidden="true"><text x="95" y="290">Loading front view</text><text x="235" y="290">Loading back view</text></svg>
+          </div>
+          <details class="region-browser"><summary>Or browse all body regions</summary><div class="region-list" id="region-list"><button type="button" data-area="neck" aria-pressed="false">Neck</button><button type="button" data-area="shoulders" aria-pressed="false">Shoulders</button><button type="button" data-area="lower_back" aria-pressed="false">Lower back</button><button type="button" data-area="kneecap" aria-pressed="false">Kneecap</button><button type="button" data-area="shins" aria-pressed="false">Shins</button><button type="button" data-area="calves" aria-pressed="false">Calves</button><button type="button" data-area="achilles" aria-pressed="false">Achilles</button><button type="button" data-area="feet" aria-pressed="false">Feet / arches</button></div></details>
+        </div>
+        <div id="selected-areas" class="selected-areas">Select one or more body regions</div>
+        <div class="step-actions"><button class="primary-button" type="button" data-step-next="2" disabled>Continue</button></div>
+      </section>
+
+      <section class="recovery-step" data-recovery-step="2" aria-labelledby="recovery-step-2-title" hidden>
+        <div class="step-heading"><p class="section-kicker">Step 2 of 3</p><h3 id="recovery-step-2-title">What does it feel like?</h3><p>Use your best estimate. You can select multiple descriptions.</p></div>
+        <div class="symptom-fields">
+          <label>Pain level <output id="pain-output">5 / 10</output><input id="pain-level" name="pain_level" type="range" min="1" max="10" value="5"></label>
+          <label>When did it begin?<select name="onset"><option value="gradual">Gradually</option><option value="sudden">Suddenly</option><option value="after_run">After a specific run</option></select></label>
+          <fieldset><legend>Sensation</legend>{% for value in ['sharp','dull','tight','sore','burning','numb','tingling'] %}<label class="check"><input type="checkbox" name="sensation" value="{{ value }}"> {{ value }}</label>{% endfor %}</fieldset>
+          <fieldset><legend>When it appears</legend>{% for value in ['running','walking','rest','movement'] %}<label class="check"><input type="checkbox" name="triggers" value="{{ value }}"> {{ value }}</label>{% endfor %}</fieldset>
+        </div>
+        <div class="step-actions"><button type="button" data-step-back="1">Back</button><button class="primary-button" type="button" data-step-next="3">Continue</button></div>
+      </section>
+
+      <section class="recovery-step" data-recovery-step="3" aria-labelledby="recovery-step-3-title" hidden>
+        <div class="step-heading"><p class="section-kicker">Step 3 of 3</p><h3 id="recovery-step-3-title">Add useful context</h3><p>This last step is optional, but details can improve the guidance.</p></div>
+        <label>Anything important to share?<textarea name="notes" maxlength="1000" placeholder="Example: pain after hills, swelling, or a recent fall."></textarea></label>
+        <p class="form-note">Chest pain, breathing trouble, severe pain, new numbness or weakness, deformity, or inability to bear weight needs prompt in-person medical attention.</p>
+        <div class="step-actions"><button type="button" data-step-back="2">Back</button><button class="primary-button" type="submit">Create check-in</button></div>
+      </section>
     </form>
   </div>
   <div id="guidance-result" class="guidance-result" hidden aria-live="polite"></div>
