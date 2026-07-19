@@ -78,6 +78,12 @@
             <button type="button" data-body-view="back" aria-pressed="false">Back</button>
           </div>
           <div class="mannequin-wrap" aria-describedby="body-help">
+            <div class="body-zoom-controls" aria-label="Body map zoom controls">
+              <button type="button" data-body-zoom="in" aria-label="Zoom in">+</button>
+              <button type="button" data-body-zoom="out" aria-label="Zoom out">−</button>
+              <output data-body-zoom-level aria-live="polite">100%</output>
+              <button type="button" data-body-zoom="reset">Reset</button>
+            </div>
             <svg class="mannequin" viewBox="0 0 365 590" aria-hidden="true"><text x="95" y="290">Loading front view</text><text x="235" y="290">Loading back view</text></svg>
           </div>
           <details class="region-browser"><summary>Or browse all body regions</summary><div class="region-list" id="region-list"><button type="button" data-area="neck" aria-pressed="false">Neck</button><button type="button" data-area="shoulders" aria-pressed="false">Shoulders</button><button type="button" data-area="lower_back" aria-pressed="false">Lower back</button><button type="button" data-area="kneecap" aria-pressed="false">Kneecap</button><button type="button" data-area="shins" aria-pressed="false">Shins</button><button type="button" data-area="calves" aria-pressed="false">Calves</button><button type="button" data-area="achilles" aria-pressed="false">Achilles</button><button type="button" data-area="feet" aria-pressed="false">Feet / arches</button></div></details>

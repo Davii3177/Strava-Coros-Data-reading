@@ -3611,22 +3611,71 @@ a { color: inherit; }
   box-shadow: 0 2px 8px rgba(65, 42, 78, .18);
 }
 .recovery-step .mannequin-wrap {
+  position: relative;
   min-height: 530px;
+  overflow: hidden;
   border: 0;
   background: var(--g-bg);
 }
 .recovery-step .mannequin {
   width: min(100%, 420px);
   height: 520px;
+  touch-action: none;
+  user-select: none;
+}
+.recovery-step .mannequin.is-zoomed { cursor: grab; }
+.recovery-step .mannequin.is-dragging { cursor: grabbing; }
+.body-zoom-controls {
+  position: absolute;
+  z-index: 4;
+  right: 12px;
+  bottom: 12px;
+  display: grid;
+  grid-template-columns: 40px 40px;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid var(--g-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 8px 22px rgba(35, 28, 39, .14);
+  backdrop-filter: blur(8px);
+}
+.dashboard-body .body-zoom-controls button {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0;
+  border: 1px solid var(--g-line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--g-ink);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.dashboard-body .body-zoom-controls button:hover,
+.dashboard-body .body-zoom-controls button:focus-visible {
+  border-color: var(--g-purple);
+  color: var(--g-purple-dark);
+}
+.body-zoom-controls output {
+  grid-column: 1 / -1;
+  color: var(--g-muted);
+  font-size: .62rem;
+  font-weight: 700;
+  text-align: center;
+}
+.dashboard-body .body-zoom-controls button[data-body-zoom="reset"] {
+  grid-column: 1 / -1;
+  min-height: 30px;
+  font-size: .62rem;
 }
 .recovery-step .body-shell {
-  fill: #f7f5f8;
-  stroke: #776f7a;
-  stroke-width: 1.4;
+  fill: #f5f3f6;
+  stroke: #68606b;
+  stroke-width: 1.55;
 }
 .recovery-step .body-region {
-  fill: rgba(125, 86, 148, .12);
-  stroke: rgba(92, 59, 111, .58);
+  fill: rgba(125, 86, 148, .17);
+  stroke: rgba(92, 59, 111, .62);
   stroke-width: 1.1;
 }
 .recovery-step .body-region:hover {

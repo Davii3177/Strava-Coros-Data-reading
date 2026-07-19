@@ -18,22 +18,22 @@
   // Commons "Human body silhouette.svg" reference. Hotspots remain inline so
   // they scale cleanly and do not depend on a third-party image request.
   function anatomySvg() {
-    return `<svg class="mannequin detailed-mannequin" viewBox="20 0 163 590" aria-hidden="true">
+    return `<svg class="mannequin detailed-mannequin" viewBox="30 0 153 590" aria-hidden="true">
       <g class="body-shell">
-        <circle cx="107" cy="55" r="21"/>
-        <path d="M60 108 Q107 95 154 108 Q160 160 150 226 Q158 250 148 267 L66 267 Q56 250 64 226 Q54 160 60 108 Z"/>
-        <path d="M50 115 Q35 140 33 180 Q32 210 38 230 Q44 248 55 250 Q50 230 46 210 Q44 180 46 150 Q48 130 58 116 Z"/>
-        <path d="M164 115 Q179 140 181 180 Q182 210 176 230 Q170 248 159 250 Q164 230 168 210 Q170 180 168 150 Q166 130 156 116 Z"/>
-        <path d="M70 264 Q60 310 63 346 Q60 400 65 462 Q62 500 65 545 Q60 558 75 561 Q80 545 78 500 Q80 440 78 380 Q82 320 80 268 Z"/>
-        <path d="M144 264 Q154 310 151 346 Q154 400 149 462 Q152 500 149 545 Q154 558 139 561 Q134 545 136 500 Q134 440 136 380 Q130 320 132 268 Z"/>
+        <ellipse cx="107" cy="52" rx="22" ry="29"/>
+        <path d="M94 77 C96 88 96 95 91 101 C77 103 66 107 58 115 C54 132 55 153 60 177 C65 198 70 218 67 239 C65 251 62 261 67 269 C79 276 93 280 107 280 C121 280 135 276 147 269 C152 261 149 251 147 239 C144 218 149 198 154 177 C159 153 160 132 156 115 C148 107 137 103 123 101 C118 95 118 88 120 77 C113 84 101 84 94 77 Z"/>
+        <path d="M59 113 C49 120 45 133 43 150 L38 191 C37 208 34 224 31 239 C30 247 34 252 42 253 C48 249 51 243 53 235 L60 198 C63 181 64 161 66 142 C68 128 66 119 59 113 Z"/>
+        <path d="M155 113 C165 120 169 133 171 150 L176 191 C177 208 180 224 183 239 C184 247 180 252 172 253 C166 249 163 243 161 235 L154 198 C151 181 150 161 148 142 C146 128 148 119 155 113 Z"/>
+        <path d="M68 266 C61 292 61 319 64 346 C62 379 62 420 65 462 C64 487 61 521 64 545 C58 552 58 559 68 562 L82 560 C80 550 78 542 78 530 L79 470 C81 434 82 393 80 359 C84 325 86 293 84 270 Z"/>
+        <path d="M146 266 C153 292 153 319 150 346 C152 379 152 420 149 462 C150 487 153 521 150 545 C156 552 156 559 146 562 L132 560 C134 550 136 542 136 530 L135 470 C133 434 132 393 134 359 C130 325 128 293 130 270 Z"/>
       </g>
       <g class="body-shell">
-        <circle cx="258" cy="55" r="21"/>
-        <path d="M211 108 Q258 95 305 108 Q311 160 301 226 Q309 250 299 267 L217 267 Q207 250 215 226 Q205 160 211 108 Z"/>
-        <path d="M201 115 Q186 140 184 180 Q183 210 189 230 Q195 248 206 250 Q201 230 197 210 Q195 180 197 150 Q199 130 209 116 Z"/>
-        <path d="M315 115 Q330 140 332 180 Q333 210 327 230 Q321 248 310 250 Q315 230 319 210 Q321 180 319 150 Q317 130 307 116 Z"/>
-        <path d="M221 264 Q211 310 214 346 Q211 400 216 462 Q213 500 216 545 Q211 558 226 561 Q231 545 229 500 Q231 440 229 380 Q233 320 231 268 Z"/>
-        <path d="M295 264 Q305 310 302 346 Q305 400 300 462 Q303 500 300 545 Q305 558 290 561 Q285 545 287 500 Q285 440 287 380 Q281 320 283 268 Z"/>
+        <ellipse cx="258" cy="52" rx="22" ry="29"/>
+        <path d="M245 77 C247 88 247 95 242 101 C228 103 217 107 209 115 C205 132 206 153 211 177 C216 198 221 218 218 239 C216 251 213 261 218 269 C230 276 244 280 258 280 C272 280 286 276 298 269 C303 261 300 251 298 239 C295 218 300 198 305 177 C310 153 311 132 307 115 C299 107 288 103 274 101 C269 95 269 88 271 77 C264 84 252 84 245 77 Z"/>
+        <path d="M210 113 C200 120 196 133 194 150 L189 191 C188 208 185 224 183 239 C182 247 186 252 194 253 C200 249 203 243 205 235 L211 198 C214 181 215 161 217 142 C219 128 217 119 210 113 Z"/>
+        <path d="M306 113 C316 120 320 133 322 150 L327 191 C328 208 331 224 334 239 C335 247 331 252 323 253 C317 249 314 243 312 235 L305 198 C302 181 301 161 299 142 C297 128 299 119 306 113 Z"/>
+        <path d="M219 266 C212 292 212 319 215 346 C213 379 213 420 216 462 C215 487 212 521 215 545 C209 552 209 559 219 562 L233 560 C231 550 229 542 229 530 L230 470 C232 434 233 393 231 359 C235 325 237 293 235 270 Z"/>
+        <path d="M297 266 C304 292 304 319 301 346 C303 379 303 420 300 462 C301 487 304 521 301 545 C307 552 307 559 297 562 L283 560 C285 550 287 542 287 530 L286 470 C284 434 283 393 285 359 C281 325 279 293 281 270 Z"/>
       </g>
       <g data-area="head_face" class="body-region"><circle cx="107" cy="55" r="20"/></g><g data-area="jaw" class="body-region"><path d="M98 73 Q107 82 116 73 L113 78 Q107 90 101 78Z"/></g><g data-area="neck" class="body-region"><path d="M95 82 C92 90 90 96 90 103 L124 103 C124 96 122 90 119 82 Q107 90 95 82Z"/><path d="M246 82 C243 90 241 96 241 103 L275 103 C275 96 273 90 270 82 Q258 90 246 82Z"/></g>
       <g data-area="collarbones" class="body-region"><path d="M66 112 Q107 97 148 112 L145 119 Q107 106 69 119Z"/></g><g data-area="shoulders" class="body-region"><path d="M65 110 C55 108 46 113 41 124 C38 132 38 138 41 144 L58 138 C56 128 58 118 68 111Z"/><path d="M149 110 C159 108 168 113 173 124 C176 132 176 138 173 144 L156 138 C158 128 156 118 146 111Z"/><path d="M216 110 C206 108 197 113 192 124 C189 132 189 138 192 144 L209 138 C207 128 209 118 219 111Z"/><path d="M300 110 C310 108 319 113 324 124 C327 132 327 138 324 144 L307 138 C309 128 307 118 297 111Z"/></g>
@@ -57,16 +57,83 @@
     region.prepend(title);
   });
   var bodyHelp = document.getElementById("body-help");
+  var bodyView = "front";
+  var bodyZoom = 1;
+  var bodyPanX = 0;
+  var bodyPanY = 0;
+  var zoomLevel = document.querySelector("[data-body-zoom-level]");
+  var viewBounds = {
+    front: { x: 30, width: 153 },
+    back: { x: 183, width: 152 },
+  };
+
+  function clamp(value, minimum, maximum) { return Math.max(minimum, Math.min(maximum, value)); }
+
+  function renderBodyMap() {
+    var bounds = viewBounds[bodyView];
+    var width = bounds.width / bodyZoom;
+    var height = 590 / bodyZoom;
+    var maxPanX = Math.max(0, (bounds.width - width) / 2);
+    var maxPanY = Math.max(0, (590 - height) / 2);
+    bodyPanX = clamp(bodyPanX, -maxPanX, maxPanX);
+    bodyPanY = clamp(bodyPanY, -maxPanY, maxPanY);
+    var x = bounds.x + (bounds.width - width) / 2 + bodyPanX;
+    var y = (590 - height) / 2 + bodyPanY;
+    mannequin.setAttribute("viewBox", [x, y, width, height].join(" "));
+    mannequin.classList.toggle("is-zoomed", bodyZoom > 1);
+    if (zoomLevel) zoomLevel.textContent = Math.round(bodyZoom * 100) + "%";
+  }
+
+  function setBodyZoom(nextZoom) {
+    bodyZoom = clamp(nextZoom, 1, 2.5);
+    if (bodyZoom === 1) { bodyPanX = 0; bodyPanY = 0; }
+    renderBodyMap();
+  }
+
   document.querySelectorAll("[data-body-view]").forEach(function (button) {
     button.addEventListener("click", function () {
-      var back = button.dataset.bodyView === "back";
-      mannequin.setAttribute("viewBox", back ? "183 0 162 590" : "20 0 163 590");
+      bodyView = button.dataset.bodyView;
+      bodyZoom = 1;
+      bodyPanX = 0;
+      bodyPanY = 0;
+      renderBodyMap();
       document.querySelectorAll("[data-body-view]").forEach(function (item) {
         item.setAttribute("aria-pressed", String(item === button));
       });
-      bodyHelp.textContent = back ? "Back view. Choose a highlighted area or browse the labels below." : "Front view. Choose a highlighted area or browse the labels below.";
+      bodyHelp.textContent = bodyView === "back" ? "Back view. Choose a highlighted area or browse the labels below." : "Front view. Choose a highlighted area or browse the labels below.";
     });
   });
+  document.querySelectorAll("[data-body-zoom]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (button.dataset.bodyZoom === "in") setBodyZoom(bodyZoom + .25);
+      else if (button.dataset.bodyZoom === "out") setBodyZoom(bodyZoom - .25);
+      else setBodyZoom(1);
+    });
+  });
+  mannequin.addEventListener("wheel", function (event) {
+    event.preventDefault();
+    setBodyZoom(bodyZoom + (event.deltaY < 0 ? .25 : -.25));
+  }, { passive: false });
+
+  var dragState = null;
+  mannequin.addEventListener("pointerdown", function (event) {
+    if (bodyZoom === 1 || event.target.closest("[data-area]")) return;
+    dragState = { x: event.clientX, y: event.clientY, panX: bodyPanX, panY: bodyPanY };
+    mannequin.setPointerCapture(event.pointerId);
+    mannequin.classList.add("is-dragging");
+  });
+  mannequin.addEventListener("pointermove", function (event) {
+    if (!dragState) return;
+    var box = mannequin.getBoundingClientRect();
+    var bounds = viewBounds[bodyView];
+    bodyPanX = dragState.panX - (event.clientX - dragState.x) * (bounds.width / bodyZoom) / box.width;
+    bodyPanY = dragState.panY - (event.clientY - dragState.y) * (590 / bodyZoom) / box.height;
+    renderBodyMap();
+  });
+  function stopBodyDrag() { dragState = null; mannequin.classList.remove("is-dragging"); }
+  mannequin.addEventListener("pointerup", stopBodyDrag);
+  mannequin.addEventListener("pointercancel", stopBodyDrag);
+  renderBodyMap();
   var regionList = document.getElementById("region-list");
   var currentGroup = "";
   regionList.innerHTML = BODY_REGIONS.map(function (region) {
