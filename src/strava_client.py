@@ -3,6 +3,7 @@
 Strava OAuth flow: https://developers.strava.com/docs/authentication/
 """
 import os
+import time
 from datetime import date, datetime, timedelta
 
 import requests
@@ -41,6 +42,8 @@ def fetch_runs(limit: int = 10) -> list[Run]:
 
 
 def _get_access_token() -> str:
+    if _token_cache["token"] and time.time() < _token_cache["expires_at"]:
+        return _token_cache["token"]
     resp = requests.post(
         TOKEN_URL,
         data={
@@ -52,7 +55,13 @@ def _get_access_token() -> str:
         timeout=10,
     )
     resp.raise_for_status()
-    return resp.json()["access_token"]
+    data = resp.json()
+    _token_cache["token"] = data["access_token"]
+    _token_cache["expires_at"] = time.time() + data.get("expires_in", 3600) - 60
+    return _token_cache["token"]
+
+
+_token_cache = {"token": None, "expires_at": 0.0}
 
 
 def _to_run(activity: dict) -> Run:

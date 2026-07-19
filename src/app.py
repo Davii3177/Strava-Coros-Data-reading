@@ -3,6 +3,7 @@ import hmac
 import json
 import os
 import secrets
+import time
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -167,7 +168,7 @@ def _render_product_area(active_area: str):
     if active_area not in area_titles:
         abort(404)
     title_key, desc_key = area_titles[active_area]
-    context = _dashboard_context()
+    context = _dashboard_context(active_area)
     context.update(active_area=active_area, area_title=t(title_key), area_description=t(desc_key))
     if active_area == "recovery":
         context["recovery_metrics"] = _recovery_metrics()
@@ -230,6 +231,7 @@ def sync_connection(provider: str):
     try:
         runs = client.fetch_runs(limit=50)
         connection_store.record_success(provider, len(runs))
+        _clear_activity_cache()
         return redirect(url_for("connections_page", message=f"{provider} sync completed."))
     except Exception:
         # Provider response bodies can contain secrets; never echo them.
@@ -476,10 +478,24 @@ def export_recovery():
     return Response("\n".join(lines), mimetype="text/plain", headers={"Content-Disposition": "attachment; filename=gaman-recovery-summary.txt"})
 
 
-def _all_runs() -> list[Run]:
+ACTIVITY_CACHE_SECONDS = 120
+RECOVERY_CACHE_SECONDS = 180
+_activity_cache = {"key": None, "expires_at": 0.0, "runs": []}
+_recovery_cache = {"expires_at": 0.0, "metrics": None}
+
+
+def _clear_activity_cache() -> None:
+    _activity_cache.update(key=None, expires_at=0.0, runs=[])
+
+
+def _all_runs(force: bool = False) -> list[Run]:
     strava_configured = strava_client.is_configured()
     coros_configured = coros_client.is_configured()
     fitbit_configured = fitbit_client.is_configured()
+    cache_key = (strava_configured, coros_configured, fitbit_configured, _today().isoformat())
+    now = time.monotonic()
+    if not force and _activity_cache["key"] == cache_key and now < _activity_cache["expires_at"]:
+        return list(_activity_cache["runs"])
     if not strava_configured and not coros_configured and not fitbit_configured:
         runs = strava_client.fetch_runs(limit=50) + coros_client.fetch_runs(limit=50) + fitbit_client.fetch_runs(limit=50)
     else:
@@ -506,6 +522,7 @@ def _all_runs() -> list[Run]:
             except Exception:
                 connection_store.record_failure("coros", "The provider could not be reached. Reconnect and try again.")
     runs.sort(key=lambda r: r.date, reverse=True)
+    _activity_cache.update(key=cache_key, expires_at=now + ACTIVITY_CACHE_SECONDS, runs=list(runs))
     return runs
 
 
@@ -513,14 +530,19 @@ def _recovery_metrics() -> dict:
     """Objective recovery signals (sleep, resting HR, HRV) from the Google
     Health / Fitbit connection. Guarded so a Health API hiccup or an
     unconnected source never breaks the Recovery page."""
+    now = time.monotonic()
+    if _recovery_cache["metrics"] is not None and now < _recovery_cache["expires_at"]:
+        return _recovery_cache["metrics"]
     try:
-        return {
+        metrics = {
             "sleep": fitbit_client.fetch_sleep(limit=7),
             "resting_hr": fitbit_client.fetch_resting_hr(limit=14),
             "hrv": fitbit_client.fetch_hrv(limit=14),
         }
     except Exception:
-        return {"sleep": [], "resting_hr": [], "hrv": []}
+        metrics = {"sleep": [], "resting_hr": [], "hrv": []}
+    _recovery_cache.update(expires_at=now + RECOVERY_CACHE_SECONDS, metrics=metrics)
+    return metrics
 
 
 # Validated (CVD-safe, contrast-checked on both the light and dark surfaces
@@ -893,7 +915,7 @@ def _feedback_runs(
     ]
 
 
-def _dashboard_context() -> dict:
+def _dashboard_context(active_area: str = "overview") -> dict:
     runs = _all_runs()
     feedback_by_run = feedback_store.load_all()
     races = race_store.load_all()
@@ -913,6 +935,8 @@ def _dashboard_context() -> dict:
     prev_month = (first_of_month - timedelta(days=1)).replace(day=1)
     next_month = (first_of_month + timedelta(days=32)).replace(day=1)
 
+    training_records = training_store.load_all()
+    shoe_rotation = shoe_store.with_mileage(runs, feedback_by_run)
     context = {
         "strava_connected": strava_client.is_configured(),
         "coros_connected": coros_client.is_configured(),
@@ -937,13 +961,13 @@ def _dashboard_context() -> dict:
         "recovery_context": _training_context(runs),
         "readiness": readiness,
         "today_run": today_run,
-        "plan_actual": planning.plan_vs_actual(runs, races, training_store.load_all(), today=today, feedback_by_run=feedback_by_run),
-        "today_saved": training_store.load_all().get(today.isoformat()),
+        "plan_actual": planning.plan_vs_actual(runs, races, training_records, today=today, feedback_by_run=feedback_by_run),
+        "today_saved": training_records.get(today.isoformat()),
         "race_goal": race_prediction.goal_center(races, runs, today=today),
         "personal_records": personal_records.calculate(runs),
         "recovery_trends": recovery_trends.summarize(checkins),
-        "shoes": shoe_store.with_mileage(runs, feedback_by_run),
-        "shoe_suggestion": shoe_store.suggest_for_today(runs, feedback_by_run, today_run["type"]),
+        "shoes": shoe_rotation,
+        "shoe_suggestion": shoe_store.suggest_for_today(runs, feedback_by_run, today_run["type"], rotation=shoe_rotation),
         "shoe_assignments": shoe_store.assignments(),
         "sample_data": bool(runs) and all("sample" in run.id for run in runs),
     }
@@ -951,17 +975,19 @@ def _dashboard_context() -> dict:
     if not runs:
         return context
 
-    model = workout_model.train(list(feedback_by_run.values()))
-    nearest_race_date = next((r.date for r in races if r.date >= today), None)
-
     context.update(
         total_distance=analysis.weekly_mileage_km(runs),
         avg_pace=format_pace(analysis.avg_pace_min_km(runs)),
         run_count=len(runs),
-        chart_html=_pace_chart_html(runs),
-        feedback=analysis.generate_feedback(runs),
-        workouts=analysis.generate_next_workouts(runs, model=model, nearest_race_date=nearest_race_date, today=today),
     )
+    if active_area == "training":
+        model = workout_model.train(list(feedback_by_run.values()))
+        nearest_race_date = next((r.date for r in races if r.date >= today), None)
+        context.update(
+            chart_html=_pace_chart_html(runs),
+            feedback=analysis.generate_feedback(runs),
+            workouts=analysis.generate_next_workouts(runs, model=model, nearest_race_date=nearest_race_date, today=today),
+        )
     return context
 
 

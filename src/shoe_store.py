@@ -97,14 +97,15 @@ def with_mileage(runs, feedback_by_run=None) -> list[dict]:
     return result
 
 
-def suggest_for_today(runs, feedback_by_run=None, workout_type: str = "") -> dict | None:
+def suggest_for_today(runs, feedback_by_run=None, workout_type: str = "", rotation=None) -> dict | None:
     """Choose a conservative daily shoe from the active rotation.
 
     The recommendation favors shoes with lower runner-reported soreness and
     less replacement wear. It is a rotation aid, not evidence that one shoe
     caused or prevented discomfort.
     """
-    candidates = [item for item in with_mileage(runs, feedback_by_run) if not item["shoe"].retired]
+    rotation = rotation if rotation is not None else with_mileage(runs, feedback_by_run)
+    candidates = [item for item in rotation if not item["shoe"].retired]
     if not candidates:
         return None
 
