@@ -3656,12 +3656,21 @@ a { color: inherit; }
   border-color: var(--g-purple);
   color: var(--g-purple-dark);
 }
-.body-zoom-controls output {
-  grid-column: 1 / -1;
+.body-zoom-readout {
+  position: absolute;
+  z-index: 4;
+  right: 25px;
+  bottom: 111px;
+  min-width: 54px;
+  padding: 6px 9px;
+  border: 1px solid var(--g-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .94);
   color: var(--g-muted);
   font-size: .62rem;
   font-weight: 700;
   text-align: center;
+  box-shadow: 0 4px 12px rgba(35, 28, 39, .1);
 }
 .dashboard-body .body-zoom-controls button[data-body-zoom="reset"] {
   grid-column: 1 / -1;
