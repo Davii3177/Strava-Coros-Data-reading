@@ -80,3 +80,32 @@ def with_mileage(runs, feedback_by_run=None) -> list[dict]:
         average_soreness = round(sum(soreness_values) / len(soreness_values), 1) if soreness_values else None
         result.append({"shoe": shoe, "mileage_km": mileage, "replacement_percent": percent, "average_pace": average_pace, "average_soreness": average_soreness})
     return result
+
+
+def suggest_for_today(runs, feedback_by_run=None) -> dict | None:
+    """Choose a conservative daily shoe from the active rotation.
+
+    The recommendation favors shoes with lower runner-reported soreness and
+    less replacement wear. It is a rotation aid, not evidence that one shoe
+    caused or prevented discomfort.
+    """
+    candidates = [item for item in with_mileage(runs, feedback_by_run) if not item["shoe"].retired]
+    if not candidates:
+        return None
+
+    usable = [item for item in candidates if item["replacement_percent"] is None or item["replacement_percent"] < 100]
+    candidates = usable or candidates
+
+    def rank(item):
+        soreness = item["average_soreness"] if item["average_soreness"] is not None else 3.0
+        replacement = item["replacement_percent"] if item["replacement_percent"] is not None else 0
+        return (soreness, replacement, item["mileage_km"])
+
+    chosen = min(candidates, key=rank)
+    if chosen["average_soreness"] is not None:
+        reason = f"Lowest logged soreness in your active rotation ({chosen['average_soreness']}/5)."
+    elif chosen["replacement_percent"] is not None:
+        reason = f"Only {chosen['replacement_percent']}% of its replacement distance is assigned."
+    else:
+        reason = "Least assigned mileage among your active shoes."
+    return {**chosen, "reason": reason}

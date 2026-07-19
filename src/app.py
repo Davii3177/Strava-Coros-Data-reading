@@ -929,6 +929,7 @@ def _dashboard_context() -> dict:
         "personal_records": personal_records.calculate(runs),
         "recovery_trends": recovery_trends.summarize(checkins),
         "shoes": shoe_store.with_mileage(runs, feedback_by_run),
+        "shoe_suggestion": shoe_store.suggest_for_today(runs, feedback_by_run),
         "shoe_assignments": shoe_store.assignments(),
         "sample_data": bool(runs) and all("sample" in run.id for run in runs),
     }

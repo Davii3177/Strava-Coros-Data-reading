@@ -45,6 +45,12 @@
     <article><span>Current recommendation</span><strong>{{ readiness.status }}</strong><small>Based on training load and check-ins</small></article>
   </section>
   {% endif %}
+  {% if shoe_suggestion %}
+  <section class="shoe-suggestion" aria-labelledby="shoe-suggestion-title">
+    <div><p class="section-kicker">Today’s rotation</p><h2 id="shoe-suggestion-title">Suggested shoe: {{ shoe_suggestion.shoe.nickname or shoe_suggestion.shoe.brand ~ ' ' ~ shoe_suggestion.shoe.model }}</h2><p>{{ shoe_suggestion.reason }}</p></div>
+    <div class="shoe-suggestion-meta"><strong>{{ shoe_suggestion.mileage_km }} km</strong><small>assigned mileage{% if shoe_suggestion.replacement_percent is not none %} · {{ shoe_suggestion.replacement_percent }}% to replacement{% endif %}</small><a href="{{ url_for('profile_page') }}#shoes">Manage rotation</a></div>
+  </section>
+  {% endif %}
   {% endif %}
 
   {% if active_area == 'training' %}
