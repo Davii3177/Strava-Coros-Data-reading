@@ -6,7 +6,7 @@
   <title>{{ area_title }} - Gaman</title>
   <meta name="description" content="{{ area_description }}">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='recovery-metrics-20260718') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='concise-ux-20260719') }}">
 </head>
 <body class="dashboard-body area-{{ active_area }}">
   <a class="skip-link" href="#main-content">{{ t('skip_link') }}</a>
@@ -30,15 +30,28 @@
 
     <main class="main" id="main-content">
       <header class="dashboard-page-header">
-        <div><p class="section-kicker">Gaman / {{ active_area|upper }}</p><h1>{{ area_title }}</h1><p>{{ area_description }}</p></div>
+        <div><p class="section-kicker">{{ active_area|upper }}</p><h1>{{ area_title }}</h1><p>{{ area_description }}</p></div>
         {% if sample_data %}<div class="sample-label"><strong>{{ t('sample.label') }}</strong><span>{{ t('sample.copy') }}</span></div>{% endif %}
       </header>
+
+      <div class="dashboard-toolbar" aria-label="Page shortcuts">
+        <nav class="quick-nav">
+          {% if active_area == 'overview' %}<a href="#daily">Today</a><a href="#readiness">Readiness</a>{% if shoe_suggestion %}<a href="#shoe-suggestion-title">Shoes</a>{% endif %}
+          {% elif active_area == 'training' %}<a href="#plan-actual">Week</a><a href="#calendar">Calendar</a><a href="#races">Races</a>
+          {% elif active_area == 'activities' %}<a href="#activity-analysis">Recent</a><a href="#runs">All runs</a><a href="#feedback">Feedback</a>
+          {% elif active_area == 'recovery' %}<a href="#recovery">Check in</a><a href="#recovery-timeline">History</a>
+          {% elif active_area == 'profile' %}<a href="#shoes">Shoes</a><a href="{{ url_for('connections_page') }}">Connections</a><a href="#about">About</a>{% endif %}
+        </nav>
+        {% if active_area in ['training', 'activities', 'recovery', 'profile'] %}
+        <details class="dashboard-view-menu"><summary>Page view</summary><div class="view-controls"><button type="button" data-expand-all>Open all</button><button type="button" data-compact-all>Close extras</button></div></details>
+        {% endif %}
+      </div>
 
       {% if active_area == 'recovery' %}{% include 'recovery_panel.html' %}{% endif %}
       {% include 'daily_companion.html' %}
 
       {% if active_area in ['training', 'activities'] and not runs %}
-      <section class="card empty-card"><p class="section-kicker">Getting started</p><h2>Connect a source to begin</h2><p>When Strava, Coros, or Fitbit activities arrive, this page will show your real training data.</p></section>
+      <section class="card empty-card"><p class="section-kicker">Getting started</p><h2>Connect a source</h2><p>Your activities will appear here automatically.</p><a class="text-action" href="{{ url_for('connections_page') }}">Manage connections</a></section>
       {% endif %}
 
       {% if active_area == 'training' %}

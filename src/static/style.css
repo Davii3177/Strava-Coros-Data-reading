@@ -3413,6 +3413,111 @@ a { color: inherit; }
 /* Measured recovery data (sleep, resting HR, HRV from Google Health) */
 .recovery-metrics-card .rm-grid { display: grid; grid-template-columns: 1.7fr 1fr 1fr; gap: 16px; margin-top: 10px; }
 @media (max-width: 760px) { .recovery-metrics-card .rm-grid { grid-template-columns: 1fr; } }
+
+/* Concise dashboard UX: keep primary decisions visible and secondary tools available on demand. */
+.dashboard-body .dashboard-page-header {
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 18px;
+}
+.dashboard-body .dashboard-page-header h1 {
+  margin-bottom: 5px;
+  font-size: clamp(2.25rem, 4vw, 4rem);
+  line-height: .96;
+}
+.dashboard-body .dashboard-page-header > div > p:last-child {
+  max-width: 58ch;
+  font-size: .84rem;
+}
+.dashboard-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.dashboard-body .dashboard-toolbar .quick-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.dashboard-body .dashboard-toolbar .quick-nav a,
+.dashboard-body .dashboard-view-menu > summary,
+.dashboard-body .dashboard-view-menu .view-controls button {
+  min-height: 34px;
+  padding: 8px 12px;
+  border: 1px solid var(--g-line);
+  border-radius: 7px;
+  background: var(--g-surface);
+  color: var(--g-ink);
+  font-size: .68rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.dashboard-body .dashboard-toolbar .quick-nav a:hover,
+.dashboard-body .dashboard-toolbar .quick-nav a:focus-visible,
+.dashboard-body .dashboard-view-menu > summary:hover,
+.dashboard-body .dashboard-view-menu > summary:focus-visible {
+  border-color: var(--g-purple);
+  color: var(--g-purple-dark);
+}
+.dashboard-body .dashboard-view-menu > .view-controls {
+  right: 0;
+  border-color: var(--g-line);
+  border-radius: 9px;
+  background: var(--g-surface);
+}
+.dashboard-body .daily-stack > * + *,
+.dashboard-body .card,
+.dashboard-body .main > .card {
+  margin-top: 16px;
+}
+.dashboard-body .card {
+  padding: clamp(22px, 2.5vw, 32px);
+}
+.dashboard-body .today-card-main {
+  padding: clamp(26px, 3vw, 38px);
+}
+.dashboard-body .today-card h1 {
+  font-size: clamp(2.65rem, 4.5vw, 4.5rem);
+}
+.dashboard-body .section-description,
+.dashboard-body .compact-summary {
+  margin-top: 5px;
+  font-size: .8rem;
+}
+.action-details {
+  margin-top: 16px;
+  border-top: 1px solid var(--g-line);
+}
+.action-details > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 10px 2px 0;
+  color: var(--g-purple-dark);
+  font-size: .75rem;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+.action-details > summary::-webkit-details-marker { display: none; }
+.action-details > summary::after { margin-left: 7px; content: "+"; }
+.action-details[open] > summary::after { content: "−"; }
+.action-details > form { margin-top: 14px; }
+.why-details .session-notes { margin-top: 14px; }
+.dashboard-secondary-heading { margin-top: 30px; }
+
+@media (max-width: 640px) {
+  .dashboard-body .dashboard-page-header { gap: 14px; margin-bottom: 14px; padding-bottom: 14px; }
+  .dashboard-body .dashboard-page-header h1 { font-size: 2.8rem; }
+  .dashboard-toolbar { align-items: flex-start; flex-direction: column; }
+  .dashboard-body .dashboard-toolbar .quick-nav { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 3px; }
+  .dashboard-body .dashboard-toolbar .quick-nav a { flex: 0 0 auto; }
+  .dashboard-body .today-card-main,
+  .dashboard-body .card,
+  .dashboard-body .recovery-card { padding: 22px 17px; }
+}
 .rm-tile { background: var(--surface-soft); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
 .rm-label { margin: 0 0 6px; font-size: .82rem; color: var(--muted); }
 .rm-figure { margin: 0; font-size: 1.9rem; font-weight: 700; color: var(--text); line-height: 1.1; }

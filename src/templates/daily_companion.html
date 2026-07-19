@@ -15,21 +15,21 @@
           <div><small>Target effort</small><strong>{{ today_run.target }}</strong></div>
         </div>
         <p class="today-purpose">{{ today_run.purpose }}</p>
-        <details class="why-details"><summary>Why this workout?</summary><ul>{% for reason in today_run.reasons %}<li>{{ reason }}</li>{% endfor %}</ul></details>
-        <div class="session-notes"><p><b>Warm-up</b>{{ today_run.warmup }}</p><p><b>Cool-down</b>{{ today_run.cooldown }}</p><p><b>Afterward</b>{{ today_run.recovery }}</p></div>
+        <details class="why-details"><summary>Workout details</summary><ul>{% for reason in today_run.reasons %}<li>{{ reason }}</li>{% endfor %}</ul><div class="session-notes"><p><b>Warm-up</b>{{ today_run.warmup }}</p><p><b>Cool-down</b>{{ today_run.cooldown }}</p><p><b>Afterward</b>{{ today_run.recovery }}</p></div></details>
         {% if today_saved %}<p class="saved-status">Saved as {{ today_saved.status|title }}{% if today_saved.actual_distance_km is not none %} · {{ today_saved.actual_distance_km }} km{% endif %}</p>{% endif %}
+        <details class="action-details"{% if today_saved %} open{% endif %}><summary>{{ 'Update workout' if today_saved else 'Log workout' }}</summary>
         <form method="post" action="{{ url_for('update_today_status') }}" class="today-status-form">
           <label><span>Status</span><select name="status"><option value="complete">Completed</option><option value="shortened">Shortened</option><option value="modified">Modified</option><option value="skipped">Skipped</option></select></label>
           <label><span>Actual distance</span><input type="number" name="actual_distance_km" min="0" max="500" step="0.1" placeholder="Kilometres"></label>
           <label class="status-note"><span>Note</span><input type="text" name="note" maxlength="300" placeholder="Optional"></label>
           <button type="submit">Save workout</button>
-        </form>
+        </form></details>
       </div>
     </article>
 
     <aside class="readiness-card" id="readiness">
       <div class="section-heading"><div><p class="section-kicker">Training load</p><h2>{{ readiness.status }}</h2></div></div>
-      <p class="supporting-copy">Your last seven days compared with your recent weekly baseline.</p>
+      <p class="supporting-copy">Last 7 days versus your weekly baseline.</p>
       <div class="load-comparison"><div><small>Last 7 days</small><strong>{{ readiness.recent_km }} km</strong></div><div><small>Typical week</small><strong>{{ readiness.prior_weekly_km }} km</strong></div></div>
       {% if readiness.change_percent is not none %}<div class="load-bar" aria-label="Training load change"><i style="width:{{ [readiness.change_percent|abs, 100]|min }}%"></i></div><p class="load-change">{{ '%+.0f'|format(readiness.change_percent) }}% compared with your baseline</p>{% endif %}
       <details class="why-details"><summary>See the evidence</summary><ul>{% for reason in readiness.reasons %}<li>{{ reason }}</li>{% endfor %}</ul></details>
@@ -46,9 +46,9 @@
   {% endif %}
   {% if runs %}
   <section class="summary-strip" aria-label="Recent training summary">
-    <article><span>Distance in loaded runs</span><strong>{{ total_distance }} km</strong><small>{{ run_count }} activities</small></article>
+    <article><span>Loaded distance</span><strong>{{ total_distance }} km</strong><small>{{ run_count }} activities</small></article>
     <article><span>Average pace</span><strong>{{ avg_pace }}</strong><small>Across loaded activities</small></article>
-    <article><span>Current recommendation</span><strong>{{ readiness.status }}</strong><small>Based on training load and check-ins</small></article>
+    <article><span>Readiness</span><strong>{{ readiness.status }}</strong><small>Load + check-ins</small></article>
   </section>
   {% endif %}
   {% endif %}
@@ -77,7 +77,7 @@
   {% endif %}
 
   {% if active_area == 'training' %}
-  <div class="dashboard-secondary-heading"><div><p class="section-kicker">More from your training</p><h2>Planning, records, and long-term context</h2></div><p>Open only the tools you need. Your data, forms, and saved history remain available below.</p></div>
+  <div class="dashboard-secondary-heading"><div><p class="section-kicker">More tools</p><h2>Goals, records, and calendar</h2></div><p>Open a section when you need it.</p></div>
 
   <div class="companion-grid">
     <section class="card goal-card" id="goal-center">
@@ -85,9 +85,10 @@
       {% if race_goal %}<div class="goal-stats"><div><small>Race day</small><strong>{{ race_goal.days }} days away</strong></div><div><small>Target pace</small><strong>{{ race_goal.target_pace or 'Not set' }}</strong></div></div>
       {% if race_goal.prediction %}<p><b>Calculated finish range:</b> {{ race_goal.prediction.low_min }}–{{ race_goal.prediction.high_min }} minutes with {{ race_goal.prediction.confidence }} confidence.</p><p class="caption">{{ race_goal.prediction.explanation }}</p>{% else %}<p class="empty">Add a race distance and recent runs to calculate a finish range.</p>{% endif %}
       <p><b>Pacing approach:</b> {{ race_goal.pacing }}</p><ul>{% for item in race_goal.checklist %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p class="empty">Set a race date, distance, and optional goal time.</p>{% endif %}
+      <details class="action-details"><summary>{{ 'Update race goal' if race_goal else 'Add race goal' }}</summary>
       <form method="post" action="{{ url_for('add_race') }}" class="mini-form">
         <label><span>Date</span><input type="date" name="date" required></label><label><span>Race name</span><input name="name" placeholder="Event name" required></label><label><span>Distance</span><input type="number" name="distance_km" step="0.1" min="0" placeholder="km"></label><label><span>Goal time</span><input type="number" name="target_time_min" step="0.1" min="0" placeholder="minutes"></label><label class="check"><input type="checkbox" name="priority" checked> Priority race</label><button type="submit">Save race goal</button>
-      </form>
+      </form></details>
     </section>
     <section class="card records-card" id="personal-records"><div class="section-heading"><div><p class="section-kicker">Personal bests</p><h2>From your loaded runs</h2></div></div><div class="record-list">{% for record in personal_records.records %}<div><span>{{ record.label }}<small>{{ record.kind }}</small></span><strong>{{ record.value }}</strong></div>{% endfor %}</div>{% for line in personal_records.unavailable %}<p class="missing-data">{{ line }}</p>{% endfor %}</section>
   </div>
@@ -101,7 +102,9 @@
   {% if active_area == 'profile' %}
   <section class="card" id="shoes">
     <div class="section-heading"><div><p class="section-kicker">Shoes</p><h2>Your rotation</h2><p class="section-description">Track assigned distance and replacement mileage.</p></div></div>
+    <details class="action-details"><summary>Add a shoe</summary>
     <form method="post" action="{{ url_for('add_shoe') }}" class="shoe-form"><label><span>Brand</span><input name="brand" required maxlength="80"></label><label><span>Model</span><input name="model" required maxlength="80"></label><label><span>Nickname</span><input name="nickname" maxlength="80" placeholder="Optional"></label><label><span>Best for</span><select name="shoe_type"><option value="daily">Daily / easy runs</option><option value="recovery">Recovery runs</option><option value="workout">Intervals / workouts</option><option value="tempo">Tempo sessions</option><option value="race">Races</option></select></label><label><span>Purchase date</span><input type="date" name="purchase_date"></label><label><span>Replace after</span><input type="number" name="replacement_km" min="1" max="5000" step="1" placeholder="km"></label><button type="submit">Add shoe</button></form>
+    </details>
     {% if shoes %}<div class="shoe-list">{% for item in shoes %}<article><div><small>{{ 'Retired' if item.shoe.retired else 'Active' }} · {{ item.shoe.shoe_type|title }}</small><h3>{{ item.shoe.nickname or item.shoe.brand ~ ' ' ~ item.shoe.model }}</h3><p>{{ item.shoe.brand }} {{ item.shoe.model }} · {{ item.mileage_km }} assigned km</p>{% if item.average_pace is not none %}<p>Observed average: {{ item.average_pace }} min/km{% if item.average_soreness is not none %} · soreness {{ item.average_soreness }}/5{% endif %}. This is an association, not a cause.</p>{% endif %}{% if item.replacement_percent is not none %}<div class="shoe-meter"><i style="width:{{ [item.replacement_percent, 100]|min }}%"></i></div><span>{{ item.replacement_percent }}% of your replacement distance</span>{% endif %}</div>{% if not item.shoe.retired %}<div class="shoe-actions"><form method="post" action="{{ url_for('update_shoe_type', shoe_id=item.shoe.id) }}"><label><span class="sr-only">Purpose for {{ item.shoe.nickname or item.shoe.model }}</span><select name="shoe_type"><option value="daily" {{ 'selected' if item.shoe.shoe_type == 'daily' }}>Daily</option><option value="recovery" {{ 'selected' if item.shoe.shoe_type == 'recovery' }}>Recovery</option><option value="workout" {{ 'selected' if item.shoe.shoe_type == 'workout' }}>Workout</option><option value="tempo" {{ 'selected' if item.shoe.shoe_type == 'tempo' }}>Tempo</option><option value="race" {{ 'selected' if item.shoe.shoe_type == 'race' }}>Race</option></select><button class="link-button" type="submit">Save label</button></form><form method="post" action="{{ url_for('retire_shoe', shoe_id=item.shoe.id) }}"><button class="link-button" type="submit">Retire</button></form></div>{% endif %}</article>{% endfor %}</div>
     {% if runs %}<details class="shoe-assignments"><summary>Assign shoes to activities</summary>{% for run in runs %}<form method="post" action="{{ url_for('assign_run_shoe', run_id=run.id) }}"><span>{{ run.date }} · {{ run.distance_km }} km</span><select name="shoe_id" aria-label="Shoe for {{ run.date }}">{% for item in shoes if not item.shoe.retired %}<option value="{{ item.shoe.id }}" {{ 'selected' if shoe_assignments.get(run.id) == item.shoe.id }}>{{ item.shoe.nickname or item.shoe.model }}</option>{% endfor %}</select><button type="submit">Assign</button></form>{% endfor %}</details>{% endif %}
     {% else %}<p class="empty">No shoes added yet.</p>{% endif %}
