@@ -68,11 +68,25 @@ class TrainingCompanionTests(unittest.TestCase):
         try:
             training_store.save("2026-01-01", "shortened", 4.2, "tight calf")
             self.assertEqual(training_store.load_all()["2026-01-01"]["status"], "shortened")
-            shoe = shoe_store.add("Brand", "Model", "Daily", "2026-01-01", 600)
+            shoe = shoe_store.add("Brand", "Model", "Daily", "2026-01-01", 600, "tempo")
             shoe_store.assign("run-1", shoe.id)
             self.assertEqual(shoe_store.assignments()["run-1"], shoe.id)
+            self.assertEqual(shoe_store.load_all()[0].shoe_type, "tempo")
         finally:
             training_store.PATH, shoe_store.PATH = old_training, old_shoes
+
+    def test_shoe_suggestion_matches_today_workout_type(self):
+        temp_dir = tempfile.mkdtemp()
+        old_shoes = shoe_store.PATH
+        shoe_store.PATH = os.path.join(temp_dir, "shoes.json")
+        try:
+            shoe_store.add("Brand", "Daily", "Daily", "2026-01-01", 600, "daily")
+            tempo = shoe_store.add("Brand", "Fast", "Tempo", "2026-01-01", 600, "tempo")
+            suggestion = shoe_store.suggest_for_today([], {}, "Tempo run")
+            self.assertEqual(suggestion["shoe"].id, tempo.id)
+            self.assertTrue(suggestion["purpose_matched"])
+        finally:
+            shoe_store.PATH = old_shoes
 
 
 if __name__ == "__main__":

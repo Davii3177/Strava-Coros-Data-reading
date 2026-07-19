@@ -91,6 +91,7 @@ class Shoe:
     purchase_date: str
     replacement_km: float | None
     retired: bool = False
+    shoe_type: str = "daily"
 
 
 @dataclass

@@ -386,13 +386,16 @@ def add_shoe():
         except ValueError:
             abort(400)
     replacement_raw = request.form.get("replacement_km", "").strip()
+    shoe_type = request.form.get("shoe_type", "daily")
     try:
         replacement_km = float(replacement_raw) if replacement_raw else None
     except ValueError:
         abort(400)
     if replacement_km is not None and not 1 <= replacement_km <= 5000:
         abort(400)
-    shoe_store.add(brand, model, nickname, purchase_date, replacement_km)
+    if shoe_type not in shoe_store.SHOE_TYPES:
+        abort(400)
+    shoe_store.add(brand, model, nickname, purchase_date, replacement_km, shoe_type)
     return redirect(url_for("profile_page") + "#shoes")
 
 
@@ -402,6 +405,15 @@ def retire_shoe(shoe_id):
         return redirect(url_for("index"))
     if not shoe_store.retire(shoe_id):
         abort(404)
+    return redirect(url_for("profile_page") + "#shoes")
+
+
+@app.route("/shoes/<shoe_id>/type", methods=["POST"])
+def update_shoe_type(shoe_id):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    if not shoe_store.set_type(shoe_id, request.form.get("shoe_type", "")):
+        abort(400)
     return redirect(url_for("profile_page") + "#shoes")
 
 
@@ -675,6 +687,7 @@ def _ask_context() -> dict:
     readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today)
     upcoming = next((race for race in sorted(races, key=lambda r: r.date) if race.date >= today), None)
     trends = recovery_trends.summarize(checkins)
+    today_run = planning.todays_run(runs, readiness, races, today=today)
     context = {
         "today": today.isoformat(),
         "run_count": len(runs),
@@ -922,14 +935,14 @@ def _dashboard_context() -> dict:
         "recovery_checkins": checkins[:5],
         "recovery_context": _training_context(runs),
         "readiness": readiness,
-        "today_run": planning.todays_run(runs, readiness, races, today=today),
+        "today_run": today_run,
         "plan_actual": planning.plan_vs_actual(runs, races, training_store.load_all(), today=today, feedback_by_run=feedback_by_run),
         "today_saved": training_store.load_all().get(today.isoformat()),
         "race_goal": race_prediction.goal_center(races, runs, today=today),
         "personal_records": personal_records.calculate(runs),
         "recovery_trends": recovery_trends.summarize(checkins),
         "shoes": shoe_store.with_mileage(runs, feedback_by_run),
-        "shoe_suggestion": shoe_store.suggest_for_today(runs, feedback_by_run),
+        "shoe_suggestion": shoe_store.suggest_for_today(runs, feedback_by_run, today_run["type"]),
         "shoe_assignments": shoe_store.assignments(),
         "sample_data": bool(runs) and all("sample" in run.id for run in runs),
     }
