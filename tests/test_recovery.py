@@ -79,6 +79,18 @@ class RecoveryCheckinTests(unittest.TestCase):
         self.assertTrue(response.json["urgent"])
         self.assertEqual(response.json["references"], [])
 
+    def test_dismissed_checkin_is_retained_but_marked_inactive(self):
+        response = self.client.post("/api/recovery/checkins", json={
+            "body_areas": ["calves"], "pain_level": 3, "onset": "gradual",
+            "sensation": ["tight"], "triggers": ["running"], "notes": "Resolved.",
+        })
+        self.assertEqual(response.status_code, 200)
+        checkin_id = recovery_store.load_all()[0].id
+
+        dismissed = self.client.post(f"/recovery/{checkin_id}/dismiss")
+        self.assertEqual(dismissed.status_code, 302)
+        self.assertTrue(recovery_store.load_all()[0].dismissed)
+
     def test_every_selectable_area_has_references_verified_against_research_md(self):
         # Every area offered by the UI (recovery.js) plus the accepted legacy
         # broad values must map to references, and every reference URL must

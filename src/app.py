@@ -441,6 +441,15 @@ def recovery_adherence(checkin_id):
     return redirect(url_for("recovery_page") + "#recovery-timeline")
 
 
+@app.route("/recovery/<checkin_id>/dismiss", methods=["POST"])
+def dismiss_recovery_checkin(checkin_id):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    if not recovery_store.dismiss(checkin_id):
+        abort(404)
+    return redirect(url_for("recovery_page") + "#recovery-timeline")
+
+
 @app.route("/recovery/export")
 def export_recovery():
     if not session.get("authenticated"):
@@ -661,7 +670,7 @@ def _ask_context() -> dict:
     runs = _all_runs()
     feedback_by_run = feedback_store.load_all()
     races = race_store.load_all()
-    checkins = recovery_store.load_all()
+    checkins = [checkin for checkin in recovery_store.load_all() if not checkin.dismissed]
     today = _today()
     readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today)
     upcoming = next((race for race in sorted(races, key=lambda r: r.date) if race.date >= today), None)
@@ -875,7 +884,7 @@ def _dashboard_context() -> dict:
     runs = _all_runs()
     feedback_by_run = feedback_store.load_all()
     races = race_store.load_all()
-    checkins = recovery_store.load_all()
+    checkins = [checkin for checkin in recovery_store.load_all() if not checkin.dismissed]
     today = _today()
     readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today)
 

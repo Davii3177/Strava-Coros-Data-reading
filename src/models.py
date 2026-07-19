@@ -79,6 +79,7 @@ class RecoveryCheckin:
     side: str = "both"
     location_detail: str = ""
     adherence: str = "not_set"
+    dismissed: bool = False
 
 
 @dataclass

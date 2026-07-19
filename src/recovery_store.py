@@ -41,3 +41,23 @@ def update_adherence(checkin_id: str, adherence: str) -> bool:
         with open(RECOVERY_PATH, "w", encoding="utf-8") as file:
             json.dump([asdict(record) for record in records], file, indent=2)
     return found
+
+
+def dismiss(checkin_id: str) -> bool:
+    """Hide a resolved symptom from active coaching and trend calculations.
+
+    The check-in is retained in the local record rather than deleted, so the
+    runner can still export their full history if they need it later.
+    """
+    records = load_all()
+    found = False
+    for record in records:
+        if record.id == checkin_id:
+            record.dismissed = True
+            found = True
+            break
+    if found:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(RECOVERY_PATH, "w", encoding="utf-8") as file:
+            json.dump([asdict(record) for record in records], file, indent=2)
+    return found
