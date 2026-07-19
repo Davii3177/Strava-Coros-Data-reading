@@ -163,7 +163,7 @@ read only on the server.
    Copy-Item .env.example .env
    ```
 
-3. Set a required password:
+3. Set a unique, strong password (never share it in chat, source control, or screenshots):
 
    ```env
    APP_PASSWORD=choose-a-strong-password
@@ -182,9 +182,13 @@ The default local address is `http://127.0.0.1:8502/`. When none of Strava, Coro
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `APP_PASSWORD` | Yes | Protects access to the dashboard |
+| `APP_PASSWORD` | First setup only | Creates the first account at `/register`; use a long unique value and rotate it afterward |
+| `REGISTRATION_CODE` | No | Invitation code for creating additional accounts at `/register` |
 | `RUNNER_TIMEZONE` | Recommended | IANA timezone (e.g. `America/New_York`) for the runner's actual location; without it, a deployed server running in UTC (Render and most hosts) rolls "today" over hours before the runner's actual midnight, silently showing tomorrow's workout in the evening |
 | `FLASK_SECRET_KEY` | Recommended | Provides a persistent Flask session-signing key |
+| `FLASK_COOKIE_SECURE` | Production | Set `true` on HTTPS hosting; keep `false` for local HTTP development |
+| `DATABASE_URL` | Production | PostgreSQL connection string; Render supplies it from the Blueprint database |
+| `DATABASE_PATH` | Local | SQLite fallback path for local development only |
 | `STRAVA_CLIENT_ID` | No | Strava application client ID |
 | `STRAVA_CLIENT_SECRET` | No | Strava application client secret |
 | `STRAVA_REFRESH_TOKEN` | No | Refresh token with activity access |
@@ -254,9 +258,9 @@ The recovery tests cover ordinary guidance, red-flag escalation, validation, and
 
 ## Deployment notes
 
-The included `render.yaml` can deploy the Flask app to Render. Configure `APP_PASSWORD` and any API credentials in the Render environment settings.
+The included `render.yaml` provisions the web service and a Render Postgres database for accounts and connection/sync status. Configure `APP_PASSWORD`, `REGISTRATION_CODE`, and API credentials in Render. On first launch, visit `/register` and use `APP_PASSWORD` as the one-time setup code to make the owner account; then rotate or remove it and set `REGISTRATION_CODE` only when inviting another user.
 
-Render's free filesystem is ephemeral. Saved races, workout feedback, and recovery check-ins in `data/*.json` may reset after redeployment or service replacement. The free service can also take roughly 30-60 seconds to wake after inactivity.
+Render's free filesystem is ephemeral. Accounts and connection/sync status use Postgres, but the legacy race, feedback, shoe, plan, and recovery JSON stores still need a final per-user data migration before they are durable and multi-user safe. The free service can also take roughly 30-60 seconds to wake after inactivity.
 
 ### Custom domain
 

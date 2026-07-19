@@ -12,6 +12,7 @@ from flask import Flask, Response, abort, jsonify, redirect, render_template, re
 
 import analysis
 import coros_client
+import connection_store
 import feedback_store
 import fitbit_client
 import personal_records
@@ -26,14 +27,24 @@ import shoe_store
 import strava_client
 import training_load
 import training_store
+import user_store
 import workout_model
 from models import Feedback, Race, RecoveryCheckin, Run, format_pace
+from security import LoginRateLimiter, csrf_token, csrf_valid
 from translations import translate
 
 load_dotenv(override=True)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    # Local Flask commonly runs over http; production must explicitly opt in
+    # through Render's environment to avoid sending sessions over http.
+    SESSION_COOKIE_SECURE=os.environ.get("FLASK_COOKIE_SECURE", "false").lower() == "true",
+)
+login_limiter = LoginRateLimiter()
 
 
 def _current_lang() -> str:
@@ -47,6 +58,22 @@ def t(key: str) -> str:
 
 app.jinja_env.globals["t"] = t
 app.jinja_env.globals["lang"] = _current_lang
+app.jinja_env.globals["csrf_token"] = lambda: csrf_token(session)
+
+
+@app.before_request
+def protect_state_changing_requests():
+    """Reject cross-site form/API writes outside the test suite."""
+    if request.method not in {"POST", "PUT", "PATCH", "DELETE"} or app.config.get("TESTING"):
+        return None
+    # Login is still protected by a token, but a new visitor has no session
+    # until their initial GET. Return a useful error instead of silently
+    # accepting a forged credential submission.
+    submitted = request.headers.get("X-CSRF-Token") if request.is_json else request.form.get("csrf_token")
+    if not csrf_valid(session, submitted):
+        if request.is_json:
+            return jsonify(error="Your form expired. Reload the page and try again."), 400
+        abort(400, "Your form expired. Reload the page and try again.")
 
 
 def _password_ok(entered: str) -> bool:
@@ -78,16 +105,53 @@ def index():
     if not session.get("authenticated"):
         error = None
         if request.method == "POST":
-            if not os.environ.get("APP_PASSWORD"):
-                error = "APP_PASSWORD is not set in .env. Refusing to start."
+            remote = request.headers.get("X-Forwarded-For", request.remote_addr or "unknown").split(",")[0].strip()
+            if not login_limiter.allowed(remote):
+                error = "Too many sign-in attempts. Please wait a few minutes and try again."
+            elif user_store.has_users():
+                account = user_store.authenticate(request.form.get("email", ""), request.form.get("password", ""))
+                if not account:
+                    login_limiter.record_failure(remote)
+                    error = "Incorrect email or password."
+                else:
+                    session.clear()
+                    session.update(authenticated=True, user_id=account["id"], user_email=account["email"])
+                    csrf_token(session)
+                    login_limiter.reset(remote)
+                    return redirect(url_for("index"))
+            elif not os.environ.get("APP_PASSWORD"):
+                error = "Set APP_PASSWORD once to create the first owner account."
             elif _password_ok(request.form.get("password", "")):
+                session.clear()
                 session["authenticated"] = True
+                csrf_token(session)
+                login_limiter.reset(remote)
                 return redirect(url_for("index"))
             else:
+                login_limiter.record_failure(remote)
                 error = "Incorrect password."
         return render_template("login.html", error=error)
 
     return _render_product_area("overview")
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if session.get("authenticated"):
+        return redirect(url_for("index"))
+    error = None
+    if request.method == "POST":
+        # The legacy secret is deliberately only a bootstrap gate. Once an
+        # account exists, registration requires an explicit invite code.
+        expected = os.environ.get("APP_PASSWORD") if not user_store.has_users() else os.environ.get("REGISTRATION_CODE")
+        if not expected or not hmac.compare_digest(request.form.get("invite_code", ""), expected):
+            error = "That setup or invitation code is not valid."
+        else:
+            ok, value = user_store.create_user(secrets.token_urlsafe(16), request.form.get("email", ""), request.form.get("password", ""))
+            if ok:
+                return redirect(url_for("index", registered="1"))
+            error = value
+    return render_template("register.html", error=error, first_account=not user_store.has_users())
 
 
 def _render_product_area(active_area: str):
@@ -137,6 +201,42 @@ def profile_page():
     return _render_product_area("profile")
 
 
+@app.route("/connections")
+def connections_page():
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    configured = {
+        "strava": strava_client.is_configured(),
+        "coros": coros_client.is_configured(),
+        "google_health": fitbit_client.is_configured(),
+    }
+    return render_template("connections.html", connections=connection_store.statuses(configured))
+
+
+@app.route("/connections/<provider>/sync", methods=["POST"])
+def sync_connection(provider: str):
+    if not session.get("authenticated"):
+        return redirect(url_for("index"))
+    clients = {
+        "strava": strava_client,
+        "coros": coros_client,
+        "google_health": fitbit_client,
+    }
+    client = clients.get(provider)
+    if client is None:
+        abort(404)
+    if not client.is_configured():
+        return redirect(url_for("connections_page", message=f"{provider} is not configured yet."))
+    try:
+        runs = client.fetch_runs(limit=50)
+        connection_store.record_success(provider, len(runs))
+        return redirect(url_for("connections_page", message=f"{provider} sync completed."))
+    except Exception:
+        # Provider response bodies can contain secrets; never echo them.
+        connection_store.record_failure(provider, "The provider could not be reached. Reconnect and try again.")
+        return redirect(url_for("connections_page", error=f"{provider} sync failed. Reconnect and try again."))
+
+
 @app.route("/how-it-works")
 def how_it_works_page():
     return render_template("how_it_works.html")
@@ -149,7 +249,7 @@ def research_page():
 
 @app.route("/logout")
 def logout():
-    session.pop("authenticated", None)
+    session.clear()
     return redirect(url_for("index"))
 
 
@@ -362,13 +462,28 @@ def _all_runs() -> list[Run]:
     if not strava_configured and not coros_configured and not fitbit_configured:
         runs = strava_client.fetch_runs(limit=50) + coros_client.fetch_runs(limit=50) + fitbit_client.fetch_runs(limit=50)
     else:
-        runs = strava_client.fetch_runs(limit=50) if strava_configured else []
-        runs += fitbit_client.fetch_runs(limit=50) if fitbit_configured else []
+        runs = []
+        for provider, client, configured in (
+            ("strava", strava_client, strava_configured),
+            ("google_health", fitbit_client, fitbit_configured),
+        ):
+            if not configured:
+                continue
+            try:
+                source_runs = client.fetch_runs(limit=50)
+                runs += source_runs
+                connection_store.record_success(provider, len(source_runs))
+            except Exception:
+                connection_store.record_failure(provider, "The provider could not be reached. Reconnect and try again.")
         if coros_configured:
             try:
-                runs += coros_client.fetch_runs(limit=50)
+                source_runs = coros_client.fetch_runs(limit=50)
+                runs += source_runs
+                connection_store.record_success("coros", len(source_runs))
             except NotImplementedError:
-                pass
+                connection_store.record_failure("coros", "COROS sync is not available yet.")
+            except Exception:
+                connection_store.record_failure("coros", "The provider could not be reached. Reconnect and try again.")
     runs.sort(key=lambda r: r.date, reverse=True)
     return runs
 
@@ -779,6 +894,11 @@ def _dashboard_context() -> dict:
         "strava_connected": strava_client.is_configured(),
         "coros_connected": coros_client.is_configured(),
         "fitbit_connected": fitbit_client.is_configured(),
+        "connection_statuses": connection_store.statuses({
+            "strava": strava_client.is_configured(),
+            "coros": coros_client.is_configured(),
+            "google_health": fitbit_client.is_configured(),
+        }),
         "runs": runs,
         "feedback_by_run": feedback_by_run,
         "feedback_runs": _feedback_runs(runs, feedback_by_run, feedback_store.load_dismissed(), today),

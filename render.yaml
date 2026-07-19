@@ -8,6 +8,8 @@ services:
     envVars:
       - key: FLASK_SECRET_KEY
         generateValue: true
+      - key: FLASK_COOKIE_SECURE
+        value: true
       - key: APP_PASSWORD
         sync: false
       - key: STRAVA_CLIENT_ID
@@ -20,3 +22,16 @@ services:
         sync: false
       - key: COROS_CLIENT_SECRET
         sync: false
+      - key: GOOGLE_HEALTH_CLIENT_ID
+        sync: false
+      - key: GOOGLE_HEALTH_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_HEALTH_REFRESH_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gaman-data
+          property: connectionString
+databases:
+  - name: gaman-data
+    plan: free

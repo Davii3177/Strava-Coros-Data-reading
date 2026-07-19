@@ -105,7 +105,7 @@
     try {
       var response = await fetch("/api/ask", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": (document.querySelector('meta[name="csrf-token"]') || {}).content || "" },
         body: JSON.stringify({ question: question, history: history }),
       });
       var data = await response.json();
