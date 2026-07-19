@@ -1,3 +1,27 @@
 <!doctype html>
-<html lang="{{ lang() }}" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Create account · Gaman</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
-<body class="landing-body"><main class="landing-shell"><section class="landing-benefits"><div class="landing-benefits-copy"><p class="section-kicker">Secure access</p><h1>{{ 'Create the owner account' if first_account else 'Create an invited account' }}</h1><p>Each account has its own sign-in. Use a long, unique password.</p>{% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}<form method="post" class="compact-login"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Email<input name="email" type="email" autocomplete="email" required></label><label>New password<input name="password" type="password" minlength="12" autocomplete="new-password" required></label><label>{{ 'Current APP_PASSWORD' if first_account else 'Invitation code' }}<input name="invite_code" type="password" required></label><button class="primary-button" type="submit">Create account</button></form><p><a class="text-action" href="{{ url_for('index') }}">Back to sign in</a></p></div></section></main></body></html>
+<html lang="{{ lang() }}" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create account · Gaman</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='account-form-20260718') }}">
+</head>
+<body class="landing-body account-page">
+  <main class="account-shell">
+    <section class="account-panel" aria-labelledby="account-title">
+      <p class="section-kicker">Secure access</p>
+      <h1 id="account-title">{{ 'Create the owner account' if first_account else 'Create an invited account' }}</h1>
+      <p class="account-intro">Each account has its own sign-in. Choose a long, unique password.</p>
+      {% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}
+      <form method="post" class="account-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Email address<input name="email" type="email" autocomplete="email" required></label>
+        <label>New password <small>At least 12 characters</small><input name="password" type="password" minlength="12" autocomplete="new-password" required></label>
+        <label>{{ 'Current APP_PASSWORD' if first_account else 'Invitation code' }}<input name="invite_code" type="password" required></label>
+        <button class="primary-button" type="submit">Create account</button>
+      </form>
+      <p class="account-back"><a class="text-action" href="{{ url_for('index') }}">Back to sign in</a></p>
+    </section>
+  </main>
+</body>
+</html>

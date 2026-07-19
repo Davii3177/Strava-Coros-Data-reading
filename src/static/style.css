@@ -3192,6 +3192,18 @@ a { color: inherit; }
 .landing-benefits-layout { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(40px, 6vw, 90px); align-items: center; }
 .landing-benefits-copy h2 { max-width: 18ch; margin: 14px 0 20px; font-size: clamp(2rem, 3.6vw, 3.3rem); line-height: 1.08; }
 .landing-benefits-copy > p:not(.section-kicker) { max-width: 46ch; color: var(--g-muted); font-size: 1.02rem; line-height: 1.7; }
+.account-page { display: grid; min-height: 100svh; background: linear-gradient(145deg, #f7f5f7 0%, #ece7ef 100%); }
+.account-shell { display: grid; place-items: center; width: min(100% - 40px, 620px); margin: 0 auto; padding: 48px 0; }
+.account-panel { width: 100%; padding: clamp(28px, 5vw, 52px); border: 1px solid var(--g-line); border-radius: var(--g-radius); background: #fff; box-shadow: 0 22px 65px rgba(35, 28, 39, .11); }
+.account-panel h1 { max-width: 13ch; margin: 12px 0 16px; color: var(--g-ink); font-family: "Instrument Serif", Georgia, "Times New Roman", serif; font-size: clamp(2.7rem, 7vw, 4.4rem); font-weight: 400; letter-spacing: -.035em; line-height: .94; }
+.account-intro { max-width: 42ch; margin: 0 0 30px; color: var(--g-muted); line-height: 1.6; }
+.account-form { display: grid; grid-template-columns: 1fr; gap: 18px; width: 100%; max-width: none; margin: 0; }
+.account-form label { display: grid; gap: 8px; color: var(--g-ink); font-size: .78rem; font-weight: 700; }
+.account-form label small { color: var(--g-muted); font-size: .68rem; font-weight: 500; }
+.account-form input { box-sizing: border-box; width: 100%; min-height: 50px; padding: 0 14px; border: 1px solid var(--g-line); border-radius: 7px; background: #fff; color: var(--g-ink); font: inherit; }
+.account-form input:focus { border-color: var(--g-purple); outline: 3px solid var(--g-purple-soft); outline-offset: 1px; }
+.account-form .primary-button { width: 100%; min-height: 50px; margin-top: 4px; border-radius: 7px; }
+.account-back { margin: 24px 0 0; font-size: .82rem; }
 .landing-preview-card { padding: clamp(24px, 3vw, 34px); border: 1px solid var(--g-line); border-radius: var(--g-radius); background: var(--g-surface); box-shadow: var(--g-shadow); }
 .landing-preview-card h3 { margin: 0; font-family: "Instrument Serif", Georgia, "Times New Roman", serif; font-weight: 400; font-size: 1.5rem; letter-spacing: -.005em; }
 .landing-preview-card .section-kicker { margin: 0 0 4px; }
@@ -3263,6 +3275,7 @@ a { color: inherit; }
   .landing-header { min-height: 64px; }.landing-nav { gap: 14px; }.landing-nav a:nth-child(2), .landing-nav a:nth-child(3) { display: none; }.landing-hero { min-height: calc(100svh - 64px); }.landing-hero-media { object-position: 58% center; }.landing-content { left: 22px; width: calc(100% - 44px); }.landing-content h1 { font-size: clamp(3.1rem, 17vw, 5rem); }.landing-benefits, .landing-how-preview, .landing-safety, .landing-about { width: min(100% - 36px, var(--g-container)); }.landing-benefits { padding: 76px 0; }.landing-how-preview { padding: 54px 24px; }.method-track li { grid-template-columns: 34px 1fr; }.method-track small { grid-column: 2; }.landing-safety, .landing-about { padding: 76px 0; }.landing-footer { align-items: flex-start; flex-direction: column; }
   .dashboard-page-header { align-items: flex-start; flex-direction: column; }.dashboard-page-header h1 { font-size: 3.25rem; }.dashboard-body .main { padding-right: 16px; padding-left: 16px; }.dashboard-body .today-card-main, .dashboard-body .card, .dashboard-body .recovery-card { padding: 24px 18px; }.dashboard-body .today-prescription, .dashboard-body .columns, .dashboard-body .recovery-layout { grid-template-columns: 1fr; }.dashboard-body .summary-strip { grid-template-columns: 1fr; }.dashboard-body .summary-strip article + article { border-top: 1px solid rgba(255,255,255,.18); border-left: 0; }.dashboard-body .race-form, .dashboard-body .feedback-form, .dashboard-body .shoe-form { grid-template-columns: 1fr; }.dashboard-body .table-wrap { margin-right: -18px; margin-left: -18px; padding-left: 18px; }.dashboard-body .mannequin-wrap { min-height: 360px; }.mobile-product-nav a { font-size: .57rem; }
   .method-page { width: calc(100% - 36px); padding: 70px 0; }.method-grid { grid-template-columns: 1fr; }.method-grid article { min-height: 0; padding: 32px 0; border-right: 0; }.method-grid h2 { margin-top: 40px; }.method-safety { gap: 24px; padding: 30px 24px; }.method-limits ul { grid-template-columns: 1fr; }
+  .account-shell { width: min(100% - 28px, 620px); padding: 24px 0; }.account-panel { padding: 28px 22px; }.account-panel h1 { font-size: clamp(2.55rem, 13vw, 3.5rem); }
 }
 
 /* Ask Gaman — compact floating chat assistant (dashboard only) */
