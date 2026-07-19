@@ -11,6 +11,9 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 
 
+_memory_status: dict[str, dict] = {}
+
+
 def _database_path() -> str:
     # SQLite is the zero-config local fallback. Deployments should point
     # DATABASE_PATH at a mounted persistent disk until the managed Postgres
@@ -60,37 +63,49 @@ def _connection():
 
 def record_success(provider: str, activity_count: int) -> None:
     now = datetime.now(timezone.utc).isoformat()
-    with _connection() as (conn, marker):
-        sql = """INSERT INTO connection_status
+    try:
+        with _connection() as (conn, marker):
+            sql = """INSERT INTO connection_status
                (provider, status, last_synced_at, activity_count, last_error, updated_at)
                VALUES (MARKER, 'connected', MARKER, MARKER, NULL, MARKER)
                ON CONFLICT(provider) DO UPDATE SET
                  status='connected', last_synced_at=excluded.last_synced_at,
                  activity_count=excluded.activity_count, last_error=NULL, updated_at=excluded.updated_at"""
-        conn.execute(
-            sql.replace("MARKER", marker),
-            (provider, now, activity_count, now),
-        )
+            conn.execute(
+                sql.replace("MARKER", marker),
+                (provider, now, activity_count, now),
+            )
+    except Exception:
+        _memory_status[provider] = {"status": "connected", "last_synced_at": now, "activity_count": activity_count, "last_error": None}
 
 
 def record_failure(provider: str, message: str) -> None:
     now = datetime.now(timezone.utc).isoformat()
     safe_message = str(message).replace("\n", " ")[:180]
-    with _connection() as (conn, marker):
-        sql = """INSERT INTO connection_status
+    try:
+        with _connection() as (conn, marker):
+            sql = """INSERT INTO connection_status
                (provider, status, last_synced_at, activity_count, last_error, updated_at)
                VALUES (MARKER, 'error', NULL, 0, MARKER, MARKER)
                ON CONFLICT(provider) DO UPDATE SET
                  status='error', last_error=excluded.last_error, updated_at=excluded.updated_at"""
-        conn.execute(
-            sql.replace("MARKER", marker),
-            (provider, safe_message, now),
-        )
+            conn.execute(
+                sql.replace("MARKER", marker),
+                (provider, safe_message, now),
+            )
+    except Exception:
+        _memory_status[provider] = {"status": "error", "last_synced_at": None, "activity_count": 0, "last_error": safe_message}
 
 
 def statuses(configured: dict[str, bool]) -> dict[str, dict]:
-    with _connection() as (conn, _):
-        rows = {row["provider"]: dict(row) for row in conn.execute("SELECT * FROM connection_status").fetchall()}
+    try:
+        with _connection() as (conn, _):
+            rows = {row["provider"]: dict(row) for row in conn.execute("SELECT * FROM connection_status").fetchall()}
+    except Exception:
+        # Connection health must never prevent a runner from opening their
+        # dashboard. Keep best-effort process-local status until the database
+        # configuration is repaired.
+        rows = _memory_status
     result = {}
     for provider, is_configured in configured.items():
         row = rows.get(provider, {})
