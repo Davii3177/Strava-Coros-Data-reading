@@ -40,7 +40,7 @@
   // Proportion landmarks use a 70-unit head: chin 80, bust 150, waist 220,
   // crotch 290, mid-thigh 325, knees 395, mid-calf 465, feet 570-575.
   function anatomySvg() {
-    return `<svg class="mannequin detailed-mannequin" viewBox="30 0 153 590" aria-hidden="true">
+    return `<svg class="mannequin detailed-mannequin" viewBox="30 0 153 590" overflow="hidden" aria-hidden="true">
       <g class="body-shell">
         <ellipse cx="107" cy="45" rx="23" ry="35"/>
         <path d="M94 77 C96 88 96 95 91 101 C77 103 66 107 58 115 C54 132 55 153 60 177 C65 198 70 218 67 239 C65 253 62 269 67 279 C79 286 93 290 107 290 C121 290 135 286 147 279 C152 269 149 253 147 239 C144 218 149 198 154 177 C159 153 160 132 156 115 C148 107 137 103 123 101 C118 95 118 88 120 77 C113 84 101 84 94 77 Z"/>
