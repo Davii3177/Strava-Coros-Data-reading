@@ -14,6 +14,11 @@ from datetime import datetime, timezone
 _memory_status: dict[str, dict] = {}
 
 
+def _persistence_enabled() -> bool:
+    """Keep dashboard availability independent of optional status storage."""
+    return os.environ.get("PERSIST_CONNECTION_STATUS", "false").lower() == "true"
+
+
 def _database_path() -> str:
     # SQLite is the zero-config local fallback. Deployments should point
     # DATABASE_PATH at a mounted persistent disk until the managed Postgres
@@ -63,6 +68,9 @@ def _connection():
 
 def record_success(provider: str, activity_count: int) -> None:
     now = datetime.now(timezone.utc).isoformat()
+    if not _persistence_enabled():
+        _memory_status[provider] = {"status": "connected", "last_synced_at": now, "activity_count": activity_count, "last_error": None}
+        return
     try:
         with _connection() as (conn, marker):
             sql = """INSERT INTO connection_status
@@ -82,6 +90,9 @@ def record_success(provider: str, activity_count: int) -> None:
 def record_failure(provider: str, message: str) -> None:
     now = datetime.now(timezone.utc).isoformat()
     safe_message = str(message).replace("\n", " ")[:180]
+    if not _persistence_enabled():
+        _memory_status[provider] = {"status": "error", "last_synced_at": None, "activity_count": 0, "last_error": safe_message}
+        return
     try:
         with _connection() as (conn, marker):
             sql = """INSERT INTO connection_status
@@ -98,14 +109,17 @@ def record_failure(provider: str, message: str) -> None:
 
 
 def statuses(configured: dict[str, bool]) -> dict[str, dict]:
-    try:
-        with _connection() as (conn, _):
-            rows = {row["provider"]: dict(row) for row in conn.execute("SELECT * FROM connection_status").fetchall()}
-    except Exception:
+    if not _persistence_enabled():
+        rows = _memory_status
+    else:
+        try:
+            with _connection() as (conn, _):
+                rows = {row["provider"]: dict(row) for row in conn.execute("SELECT * FROM connection_status").fetchall()}
+        except Exception:
         # Connection health must never prevent a runner from opening their
         # dashboard. Keep best-effort process-local status until the database
         # configuration is repaired.
-        rows = _memory_status
+            rows = _memory_status
     result = {}
     for provider, is_configured in configured.items():
         row = rows.get(provider, {})

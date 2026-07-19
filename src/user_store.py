@@ -27,9 +27,12 @@ def _ensure(conn):
 
 
 def has_users() -> bool:
-    with _connection() as (conn, _):
-        _ensure(conn)
-        return conn.execute("SELECT 1 FROM users LIMIT 1").fetchone() is not None
+    try:
+        with _connection() as (conn, _):
+            _ensure(conn)
+            return conn.execute("SELECT 1 FROM users LIMIT 1").fetchone() is not None
+    except Exception:
+        return False
 
 
 def create_user(user_id: str, email: str, password: str) -> tuple[bool, str]:
@@ -57,9 +60,12 @@ def create_user(user_id: str, email: str, password: str) -> tuple[bool, str]:
 
 def authenticate(email: str, password: str) -> dict | None:
     email = email.strip().lower()
-    with _connection() as (conn, marker):
-        _ensure(conn)
-        row = _execute(conn, marker, "SELECT id, email, password_hash FROM users WHERE email = MARKER", (email,)).fetchone()
+    try:
+        with _connection() as (conn, marker):
+            _ensure(conn)
+            row = _execute(conn, marker, "SELECT id, email, password_hash FROM users WHERE email = MARKER", (email,)).fetchone()
+    except Exception:
+        return None
     if row is None or not check_password_hash(row["password_hash"], password):
         return None
     return {"id": row["id"], "email": row["email"]}
