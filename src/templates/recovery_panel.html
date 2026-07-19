@@ -73,6 +73,10 @@
       <section class="recovery-step" data-recovery-step="1" aria-labelledby="recovery-step-1-title">
         <div class="step-heading"><p class="section-kicker">Step 1 of 3</p><h3 id="recovery-step-1-title">Where do you feel it?</h3><p id="body-help">Choose the illustration or a label below.</p></div>
         <div class="anatomy-panel">
+          <div class="body-view-switch" role="group" aria-label="Body view">
+            <button type="button" data-body-view="front" aria-pressed="true">Front</button>
+            <button type="button" data-body-view="back" aria-pressed="false">Back</button>
+          </div>
           <div class="mannequin-wrap" aria-describedby="body-help">
             <svg class="mannequin" viewBox="0 0 365 590" aria-hidden="true"><text x="95" y="290">Loading front view</text><text x="235" y="290">Loading back view</text></svg>
           </div>

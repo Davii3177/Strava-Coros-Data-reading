@@ -9,9 +9,16 @@
     ["Legs & feet", "quads", "Quads"], ["Legs & feet", "inner_thighs", "Inner thighs"], ["Legs & feet", "outer_thighs", "Outer thighs / IT band"], ["Legs & feet", "hamstrings", "Hamstrings"], ["Legs & feet", "kneecap", "Kneecap"], ["Legs & feet", "inner_knee", "Inner knee"], ["Legs & feet", "outer_knee", "Outer knee"], ["Legs & feet", "shins", "Shins"], ["Legs & feet", "calves", "Calves"], ["Legs & feet", "achilles", "Achilles"], ["Legs & feet", "ankles", "Ankles"], ["Legs & feet", "heels", "Heels"], ["Legs & feet", "feet", "Feet / arches"], ["Legs & feet", "toes", "Toes"],
   ];
 
+  function labelFor(area) {
+    var found = BODY_REGIONS.find(function (region) { return region[1] === area; });
+    return found ? found[2] : area;
+  }
+
+  // Local interactive silhouette, informed by the public-domain Wikimedia
+  // Commons "Human body silhouette.svg" reference. Hotspots remain inline so
+  // they scale cleanly and do not depend on a third-party image request.
   function anatomySvg() {
-    return `<svg class="mannequin detailed-mannequin" viewBox="0 0 365 590" aria-hidden="true">
-      <text x="92" y="25">FRONT</text><text x="250" y="25">BACK</text>
+    return `<svg class="mannequin detailed-mannequin" viewBox="20 0 163 590" aria-hidden="true">
       <g class="body-shell">
         <circle cx="107" cy="55" r="21"/>
         <path d="M60 108 Q107 95 154 108 Q160 160 150 226 Q158 250 148 267 L66 267 Q56 250 64 226 Q54 160 60 108 Z"/>
@@ -43,6 +50,23 @@
 
   var oldSvg = document.querySelector(".mannequin");
   oldSvg.outerHTML = anatomySvg();
+  var mannequin = document.querySelector(".mannequin");
+  document.querySelectorAll(".mannequin [data-area]").forEach(function (region) {
+    var title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    title.textContent = labelFor(region.dataset.area);
+    region.prepend(title);
+  });
+  var bodyHelp = document.getElementById("body-help");
+  document.querySelectorAll("[data-body-view]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var back = button.dataset.bodyView === "back";
+      mannequin.setAttribute("viewBox", back ? "183 0 162 590" : "20 0 163 590");
+      document.querySelectorAll("[data-body-view]").forEach(function (item) {
+        item.setAttribute("aria-pressed", String(item === button));
+      });
+      bodyHelp.textContent = back ? "Back view. Choose a highlighted area or browse the labels below." : "Front view. Choose a highlighted area or browse the labels below.";
+    });
+  });
   var regionList = document.getElementById("region-list");
   var currentGroup = "";
   regionList.innerHTML = BODY_REGIONS.map(function (region) {
@@ -87,7 +111,6 @@
     button.addEventListener("click", function () { showStep(Number(button.dataset.stepBack), true); });
   });
 
-  function labelFor(area) { var found = BODY_REGIONS.find(function (region) { return region[1] === area; }); return found ? found[2] : area; }
   function updateSelection() {
     selectorButtons.forEach(function (element) { var active = selected.has(element.dataset.area); element.classList.toggle("is-selected", active); if (element.tagName === "BUTTON") element.setAttribute("aria-pressed", active); });
     selectedAreas.textContent = selected.size ? Array.from(selected).map(labelFor).join(" · ") : "Select one or more body regions";
