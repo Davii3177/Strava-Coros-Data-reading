@@ -900,6 +900,7 @@ def _dashboard_context() -> dict:
     checkins = [checkin for checkin in recovery_store.load_all() if not checkin.dismissed]
     today = _today()
     readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today)
+    today_run = planning.todays_run(runs, readiness, races, today=today)
 
     try:
         year = int(request.args.get("year", today.year))
