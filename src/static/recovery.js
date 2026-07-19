@@ -41,7 +41,7 @@
   // crotch 290, mid-thigh 325, knees 395, mid-calf 465, feet 570-575.
   function anatomySvg() {
     return `<svg class="mannequin detailed-mannequin" viewBox="30 0 153 590" overflow="hidden" aria-hidden="true">
-      <g class="body-shell">
+      <g class="body-shell body-view-front">
         <ellipse cx="107" cy="45" rx="23" ry="35"/>
         <path d="M94 77 C96 88 96 95 91 101 C77 103 66 107 58 115 C54 132 55 153 60 177 C65 198 70 218 67 239 C65 253 62 269 67 279 C79 286 93 290 107 290 C121 290 135 286 147 279 C152 269 149 253 147 239 C144 218 149 198 154 177 C159 153 160 132 156 115 C148 107 137 103 123 101 C118 95 118 88 120 77 C113 84 101 84 94 77 Z"/>
         <path d="M59 113 C49 120 45 133 43 150 L38 191 C37 208 34 224 31 239 C30 247 34 252 42 253 C48 249 51 243 53 235 L60 198 C63 181 64 161 66 142 C68 128 66 119 59 113 Z"/>
@@ -49,7 +49,7 @@
         <path d="M68 286 C61 319 61 362 64 395 C62 420 62 447 65 465 C64 491 62 521 64 550 C58 558 58 569 68 573 L82 571 C80 559 78 548 78 535 L79 468 C81 443 82 419 80 396 C84 360 86 320 84 290 Z"/>
         <path d="M146 286 C153 319 153 362 150 395 C152 420 152 447 149 465 C150 491 152 521 150 550 C156 558 156 569 146 573 L132 571 C134 559 136 548 136 535 L135 468 C133 443 132 419 134 396 C130 360 128 320 130 290 Z"/>
       </g>
-      <g class="body-shell">
+      <g class="body-shell body-view-back">
         <ellipse cx="258" cy="45" rx="23" ry="35"/>
         <path d="M245 77 C247 88 247 95 242 101 C228 103 217 107 209 115 C205 132 206 153 211 177 C216 198 221 218 218 239 C216 253 213 269 218 279 C230 286 244 290 258 290 C272 290 286 286 298 279 C303 269 300 253 298 239 C295 218 300 198 305 177 C310 153 311 132 307 115 C299 107 288 103 274 101 C269 95 269 88 271 77 C264 84 252 84 245 77 Z"/>
         <path d="M210 113 C200 120 196 133 194 150 L189 191 C188 208 185 224 183 239 C182 247 186 252 194 253 C200 249 203 243 205 235 L211 198 C214 181 215 161 217 142 C219 128 217 119 210 113 Z"/>
@@ -74,6 +74,10 @@
   oldSvg.outerHTML = anatomySvg();
   var mannequin = document.querySelector(".mannequin");
   document.querySelectorAll(".mannequin [data-area]").forEach(function (region) {
+    Array.from(region.children).forEach(function (shape) {
+      var box = shape.getBBox();
+      shape.classList.add(box.x + box.width / 2 < 183 ? "body-view-front" : "body-view-back");
+    });
     if (REGION_TRANSFORMS[region.dataset.area]) region.setAttribute("transform", REGION_TRANSFORMS[region.dataset.area]);
     var title = document.createElementNS("http://www.w3.org/2000/svg", "title");
     title.textContent = labelFor(region.dataset.area);
@@ -81,6 +85,7 @@
   });
   var bodyHelp = document.getElementById("body-help");
   var bodyView = "front";
+  mannequin.dataset.activeBodyView = bodyView;
   var bodyZoom = 1;
   var bodyPanX = 0;
   var bodyPanY = 0;
@@ -116,6 +121,7 @@
   document.querySelectorAll("[data-body-view]").forEach(function (button) {
     button.addEventListener("click", function () {
       bodyView = button.dataset.bodyView;
+      mannequin.dataset.activeBodyView = bodyView;
       bodyZoom = 1;
       bodyPanX = 0;
       bodyPanY = 0;

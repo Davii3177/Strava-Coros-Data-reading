@@ -3626,6 +3626,10 @@ a { color: inherit; }
 }
 .recovery-step .mannequin.is-zoomed { cursor: grab; }
 .recovery-step .mannequin.is-dragging { cursor: grabbing; }
+.recovery-step .mannequin[data-active-body-view="front"] .body-view-back,
+.recovery-step .mannequin[data-active-body-view="back"] .body-view-front {
+  display: none !important;
+}
 .body-zoom-controls {
   position: absolute;
   z-index: 4;

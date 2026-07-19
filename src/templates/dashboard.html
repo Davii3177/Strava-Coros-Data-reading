@@ -6,7 +6,7 @@
   <title>{{ area_title }} - Gaman</title>
   <meta name="description" content="{{ area_description }}">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='single-clipped-body-20260719') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='exclusive-body-view-20260719') }}">
 </head>
 <body class="dashboard-body area-{{ active_area }}">
   <a class="skip-link" href="#main-content">{{ t('skip_link') }}</a>
@@ -97,7 +97,7 @@
   <script src="{{ url_for('static', filename='dashboard_compact.js') }}"></script>
   <script>document.addEventListener('submit', function (event) { var form = event.target; if (!form.matches('form[method="post"]') || form.querySelector('input[name="csrf_token"]')) return; var token = document.querySelector('meta[name="csrf-token"]'); if (token) { var input = document.createElement('input'); input.type = 'hidden'; input.name = 'csrf_token'; input.value = token.content; form.appendChild(input); } });</script>
   <script src="{{ url_for('static', filename='run_panels.js') }}"></script>
-  {% if active_area == 'recovery' %}<script src="{{ url_for('static', filename='recovery.js', v='single-clipped-body-20260719') }}"></script>{% endif %}
+  {% if active_area == 'recovery' %}<script src="{{ url_for('static', filename='recovery.js', v='exclusive-body-view-20260719') }}"></script>{% endif %}
   <script src="{{ url_for('static', filename='ask.js') }}"></script>
   <script src="{{ url_for('static', filename='page_transition.js') }}"></script>
 </body>
