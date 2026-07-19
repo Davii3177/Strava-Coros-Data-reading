@@ -24,6 +24,32 @@
     compactScreen.addListener(updateHeroMotion);
   }
 
+  if (!reducedMotion.matches && "IntersectionObserver" in window) {
+    var revealTargets = document.querySelectorAll(".landing-benefits, .landing-how-preview, .landing-safety, .landing-about, .landing-footer");
+    revealTargets.forEach(function (target) { target.classList.add("reveal-on-scroll"); });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-revealed");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.14 });
+    revealTargets.forEach(function (target) { observer.observe(target); });
+
+    var ticking = false;
+    window.addEventListener("scroll", function () {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(function () {
+        var scrollY = Math.min(window.scrollY, 700);
+        document.documentElement.style.setProperty("--gaman-scroll-scale", String(1.015 + scrollY * 0.00004));
+        document.documentElement.style.setProperty("--gaman-scroll-shift", (scrollY * 0.025) + "px");
+        ticking = false;
+      });
+    }, { passive: true });
+  }
+
   var dialog = document.getElementById("login-dialog");
   if (!dialog) return;
 
