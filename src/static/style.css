@@ -3778,3 +3778,114 @@ a { color: inherit; }
 .rm-spark { display: flex; align-items: flex-end; gap: 3px; height: 40px; margin-top: 12px; }
 .rm-spark .rm-bar { flex: 1; background: var(--blue); border-radius: 2px 2px 0 0; min-height: 4px; opacity: .55; }
 .rm-spark .rm-bar:last-child { opacity: 1; }
+
+/* ============================================================
+   Landing scroll choreography
+   Every effect here is driven by landing.js and disabled wholesale
+   under prefers-reduced-motion (see the block at the end).
+   ============================================================ */
+
+/* --- 1. scroll progress rail --- */
+.scroll-progress {
+  position: fixed;
+  z-index: 999;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  pointer-events: none;
+}
+.scroll-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--g-purple, #6b4f7d), #c9aed8);
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: 0 50%;
+}
+
+/* --- 2. hero: content drifts and fades as the video keeps scaling --- */
+.landing-content {
+  will-change: transform, opacity;
+  transform: translateY(calc(-50% + var(--hero-shift, 0px)));
+  opacity: var(--hero-fade, 1);
+}
+
+/* --- 3. staggered child reveals ---
+   The container reveals as before; children now arrive in sequence so a
+   section reads top-to-bottom instead of popping in as one slab. */
+.reveal-on-scroll [data-stagger] {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity .62s cubic-bezier(.22, .8, .25, 1),
+    transform .62s cubic-bezier(.22, .8, .25, 1);
+  transition-delay: calc(var(--stagger, 0) * 85ms);
+}
+.reveal-on-scroll.is-revealed [data-stagger] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- 4. method track: the rule draws itself as the list arrives --- */
+.method-track { position: relative; }
+.method-track::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .08));
+  content: "";
+  transform: scaleY(var(--track-draw, 0));
+  transform-origin: 50% 0;
+  transition: transform .2s linear;
+}
+.method-track li {
+  padding-left: 18px;
+  transition:
+    opacity .6s cubic-bezier(.22, .8, .25, 1),
+    transform .6s cubic-bezier(.22, .8, .25, 1),
+    border-color .6s ease;
+}
+.reveal-on-scroll .method-track li { opacity: 0; transform: translateX(-14px); }
+.reveal-on-scroll.is-revealed .method-track li {
+  opacity: 1;
+  transform: translateX(0);
+  transition-delay: calc(var(--stagger, 0) * 95ms);
+}
+.method-track li b {
+  display: inline-block;
+  transition: color .4s ease, transform .4s cubic-bezier(.22, .8, .25, 1);
+}
+.method-track li.is-active b { color: #e6d7ef; transform: scale(1.18); }
+
+/* --- 5. counters land on their real value rather than fading in flat --- */
+.landing-preview-stats strong[data-countup] { font-variant-numeric: tabular-nums; }
+
+/* --- 6. photo drifts inside its frame as the section passes --- */
+.landing-about-photo {
+  overflow: hidden;
+  will-change: transform;
+}
+.landing-about-photo img {
+  transform: translateY(var(--photo-shift, 0px)) scale(1.08);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress { display: none; }
+  .landing-content { transform: translateY(-50%); opacity: 1; }
+  .reveal-on-scroll [data-stagger],
+  .reveal-on-scroll .method-track li,
+  .reveal-on-scroll.is-revealed [data-stagger],
+  .reveal-on-scroll.is-revealed .method-track li {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .method-track::before { transform: scaleY(1); }
+  .landing-about-photo img { transform: none; }
+}
+
