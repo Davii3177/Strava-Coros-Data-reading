@@ -9,6 +9,7 @@ def calculate(
     feedback_by_run: dict[str, Feedback],
     checkins: list[RecoveryCheckin],
     today: date | None = None,
+    recovery_metrics: dict | None = None,
 ) -> dict:
     today = today or date.today()
     recent_start = today - timedelta(days=6)
@@ -55,5 +56,13 @@ def calculate(
         "recent_km": recent_km, "prior_weekly_km": prior_weekly,
         "change_percent": change, "soreness": soreness, "motivation": motivation,
         "peak_pain": peak_pain, "recent_elevation_m": recent_elevation, "hard_sessions": hard_sessions,
-        "missing": [name for name, value in (("sleep", None), ("HRV", None), ("resting heart rate", None)) if value is None],
+        "missing": [
+            name
+            for name, values in (
+                ("sleep", (recovery_metrics or {}).get("sleep")),
+                ("HRV", (recovery_metrics or {}).get("hrv")),
+                ("resting heart rate", (recovery_metrics or {}).get("resting_hr")),
+            )
+            if not values
+        ],
     }

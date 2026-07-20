@@ -706,7 +706,7 @@ def _ask_context() -> dict:
     races = race_store.load_all()
     checkins = [checkin for checkin in recovery_store.load_all() if not checkin.dismissed]
     today = _today()
-    readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today)
+    readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today, recovery_metrics=_recovery_metrics())
     upcoming = next((race for race in sorted(races, key=lambda r: r.date) if race.date >= today), None)
     trends = recovery_trends.summarize(checkins)
     today_run = planning.todays_run(runs, readiness, races, today=today)
@@ -921,7 +921,7 @@ def _dashboard_context(active_area: str = "overview") -> dict:
     races = race_store.load_all()
     checkins = [checkin for checkin in recovery_store.load_all() if not checkin.dismissed]
     today = _today()
-    readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today)
+    readiness = training_load.calculate(runs, feedback_by_run, checkins, today=today, recovery_metrics=_recovery_metrics())
     today_run = planning.todays_run(runs, readiness, races, today=today)
 
     try:
