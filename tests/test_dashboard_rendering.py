@@ -74,6 +74,11 @@ def parse(response):
     return probe
 
 
+def script_paths(probe):
+    """Script srcs without their ?v= cache-bust value."""
+    return {src.split("?", 1)[0] for src in probe.scripts}
+
+
 class DashboardRenderingContractTests(unittest.TestCase):
     def setUp(self):
         self.old_testing = app_module.app.config.get("TESTING")
@@ -365,8 +370,14 @@ class DashboardRenderingContractTests(unittest.TestCase):
             "/static/run_panels.js",
             "/static/recovery.js",
         }
-        scripts = {script for probe in probes for script in probe.scripts}
-        self.assertTrue(required_scripts.issubset(scripts))
+        # Scripts carry a ?v= cache-bust value, so compare paths only.
+        scripts = {
+            script.split("?", 1)[0] for probe in probes for script in probe.scripts
+        }
+        self.assertTrue(
+            required_scripts.issubset(scripts),
+            f"Missing scripts: {sorted(required_scripts - scripts)}",
+        )
         self.assertTrue(all("theme-toggle" not in probe.elements_by_id for probe in probes))
         self.assertNotIn("/static/theme.js", scripts)
         self.assertTrue(
@@ -415,7 +426,7 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertIn("mailto:davidch3@andrew.cmu.edu", hrefs)
         self.assertIn("#access", hrefs)
         self.assertIn("#about", hrefs)
-        self.assertIn("/static/landing.js", probe.scripts)
+        self.assertIn("/static/landing.js", script_paths(probe))
         self.assertTrue(
             any(href.startswith("/static/style.css") for href in probe.stylesheets)
         )
@@ -504,16 +515,35 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertIn(".login-dialog-submit", stylesheet)
         self.assertIn(".detail-body .metric-card:nth-child(2)", stylesheet)
 
-    def test_all_pages_use_the_contrast_stylesheet_revision(self):
-        public_routes = ("/", "/how-it-works")
-        for route in public_routes:
-            probe = parse(self.client.get(route))
-            self.assertTrue(all("recovery-metrics-20260718" in href for href in probe.stylesheets))
+    def test_all_pages_share_one_static_asset_revision(self):
+        """Every page must cache-bust on the same ASSET_VERSION.
+
+        Templates used to each carry their own literal revision, which drifted
+        into five different values: editing style.css and bumping only the
+        template in front of you left every other page serving the stale
+        cached stylesheet. Asserting against app.ASSET_VERSION means a bump
+        needs no test edit, while a template that reintroduces its own literal
+        (or forgets ?v= entirely) fails here.
+        """
+        expected = f"v={app_module.ASSET_VERSION}"
+
+        def assert_versioned(route, probe):
+            # Only project-local assets; third-party CDN URLs are not ours to version.
+            assets = [
+                href
+                for href in probe.stylesheets + probe.scripts
+                if href.startswith("/static/")
+            ]
+            self.assertTrue(assets, f"{route} referenced no local static assets")
+            for href in assets:
+                self.assertIn(expected, href, f"{route} -> {href}")
+
+        for route in ("/", "/how-it-works"):
+            assert_versioned(route, parse(self.client.get(route)))
 
         self.authenticate()
         for route in ("/", "/training", "/activities", "/recovery", "/profile", f"/runs/{self.runs[0].id}"):
-            probe = parse(self.client.get(route))
-            self.assertTrue(all("recovery-metrics-20260718" in href for href in probe.stylesheets), route)
+            assert_versioned(route, parse(self.client.get(route)))
 
     def test_recovery_page_shows_measured_recovery_data(self):
         self.authenticate()
@@ -545,7 +575,7 @@ class DashboardRenderingContractTests(unittest.TestCase):
         self.assertIn("ask-panel", probe.elements_by_id)
         self.assertEqual(probe.elements_by_id["ask-panel"][0], "dialog")
         self.assertIn("data-ask-open", probe.data_attributes)
-        self.assertIn("/static/ask.js", probe.scripts)
+        self.assertIn("/static/ask.js", script_paths(probe))
 
     def test_ask_endpoint_requires_authentication(self):
         response = self.client.post("/api/ask", json={"question": "Should I run today?"})

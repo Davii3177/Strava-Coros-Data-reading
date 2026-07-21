@@ -57,9 +57,16 @@ def t(key: str) -> str:
     return translate(key, _current_lang())
 
 
+# Cache-busting query value for style.css and the page scripts. Every template
+# must use this one constant: when each template carried its own literal, a CSS
+# change bumped only the template being edited and every other page kept serving
+# the stale cached stylesheet. Bump it whenever a static asset changes.
+ASSET_VERSION = "shared-asset-revision-20260720"
+
 app.jinja_env.globals["t"] = t
 app.jinja_env.globals["lang"] = _current_lang
 app.jinja_env.globals["csrf_token"] = lambda: csrf_token(session)
+app.jinja_env.globals["ASSET_VERSION"] = ASSET_VERSION
 
 
 @app.before_request

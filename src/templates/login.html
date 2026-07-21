@@ -10,7 +10,7 @@
   <meta property="og:description" content="Gaman turns Strava and Coros activity data into a practical daily running plan, training context, and recovery check-ins.">
   <meta property="og:url" content="https://www.gamanrun.com/">
   <meta property="og:type" content="website">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='recovery-metrics-20260718') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=ASSET_VERSION) }}">
 </head>
 <body class="landing-body">
   <a class="skip-link" href="#home">{{ t('skip_link') }}</a>
@@ -64,7 +64,7 @@
   <dialog class="login-dialog" id="login-dialog" data-auto-open="{{ 'true' if error else 'false' }}" aria-labelledby="login-dialog-title">
     <form method="post" class="compact-login" id="access"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="login-dialog-close" type="button" data-login-close aria-label="Close password dialog"></button><div class="login-dialog-copy"><small>{{ t('dialog.brand') }}</small><h2 id="login-dialog-title">{{ t('dialog.title') }}</h2><p>{{ t('dialog.copy') }}</p></div>{% if error %}<p class="landing-error" role="alert">{{ error }}</p>{% endif %}<label for="email">Email <small>(after account setup)</small></label><input id="email" type="email" name="email" autocomplete="email"><label for="password">{{ t('dialog.password_label') }}</label><input id="password" type="password" name="password" autocomplete="current-password" required><button class="login-dialog-submit" type="submit">{{ t('dialog.submit') }}</button><p class="caption"><a href="{{ url_for('register') }}">Create the first secure account or use an invitation</a></p></form>
   </dialog>
-  <script src="{{ url_for('static', filename='landing.js') }}"></script>
-  <script src="{{ url_for('static', filename='page_transition.js') }}"></script>
+  <script src="{{ url_for('static', filename='landing.js', v=ASSET_VERSION) }}"></script>
+  <script src="{{ url_for('static', filename='page_transition.js', v=ASSET_VERSION) }}"></script>
 </body>
 </html>
