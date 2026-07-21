@@ -28,7 +28,8 @@ The hosted app is password-protected. Ask the owner for access.
 - Race-day planning and saved race goals
 - Per-run difficulty, soreness, motivation, and notes
 - A trained workout model that adapts suggestions from logged feedback
-- Detailed Body & Recovery check-ins with saved history
+- A guided three-step Body & Recovery check-in with an interactive, zoomable body map and saved history
+- Measured recovery signals (sleep, resting heart rate, HRV) surfaced on the readiness card when a wearable is connected
 - Optional server-side AI-expanded recovery education
 - **Ask Gaman**, an optional Gemini-powered chat assistant that answers training questions grounded in your logged runs, readiness, and races
 - A **research library** at `/research`: a source-cited, evidence-graded review of 110 peer-reviewed papers on running-related pain by body region, with region-matched citations shown alongside recovery check-in guidance
@@ -50,6 +51,7 @@ The interface was redesigned and renamed from **Run Coach** to **Gaman**.
 - Consistent spacing, borders, and icons keep the expressive visual language practical. Motion is limited to useful feedback such as loading, progress, and state changes.
 - Desktop navigation uses a stable product sidebar. Mobile navigation uses a compact five-destination bottom bar with a visible active state.
 - Search, compact views, and collapsible sections keep detailed tools available without overwhelming the main dashboard. Activity Details shows four runs and Run Feedback shows three prompts by default; both support search and Show all/less controls, while feedback deletion, dismissal, and seven-day prompt expiry remain intact.
+- The landing page layers scroll choreography over the existing reveal system: a top progress rail, hero copy that drifts and fades faster than the video behind it, staggered child reveals, a self-drawing rule beside the 01-04 method track with an active-step highlight, count-up on the preview stats, and parallax on the About photo. One `requestAnimationFrame`-throttled scroll listener drives CSS custom properties rather than animating from script, so the compositor does the work. Every effect sits behind `prefers-reduced-motion`, and the hiding rules apply only under `.reveal-on-scroll`, so all content stays visible without JavaScript.
 - The landing page uses a concise white header and full-bleed cinematic imagery, with one headline, one supporting sentence, and a single Open Dashboard button that reveals a compact password dialog.
 - The landing page contains one concise hero, a "real Tuesday" narrative section paired with a live-styled product preview card (instead of generic numbered feature tiles), a short workflow preview, safety boundaries, a detailed About section, and a footer. The complete technical explanation now lives at `/how-it-works`.
 - The authenticated product shares one editorial system: white and warm-gray surfaces, charcoal text, restrained purple interaction states, consistent cards, Geist controls, and Instrument Serif for major page titles.
@@ -66,17 +68,21 @@ The following project-local assets are original images generated for Gaman using
 
 ### Hero video
 
-The owner-supplied hero footage is served at full length (33 seconds), re-encoded for web playback, as:
+The owner-supplied hero footage is re-encoded for web playback as:
 
-- `src/static/videos/gaman-0716-hero-compressed.mp4` (1080p, 30fps, H.264 ~3.3 Mbps, no audio track — the original 70 MB source is downsampled to keep the autoplay/loop background video from bogging down playback the longer a visitor stays on the page)
+- `src/static/videos/gaman-0716-hero-compressed.mp4` (1080p, 30fps, H.264 ~3.3 Mbps, no audio track, `faststart`)
 
-The poster (`gaman-0716-poster-v2.jpg`) is used for reduced-motion preferences, small screens, and data-saver connections. The video file is local, so the homepage has no third-party media dependency.
+The clip was shortened from 33.5s to **22.3s** (13.7 MB → 8.8 MB) so the hero paints sooner and the autoplay/loop background stops bogging down playback the longer a visitor stays on the page. The poster (`gaman-0716-poster-v2.jpg`) is regenerated from a frame of the current clip — an earlier poster showed the previous footage and flashed the wrong image before playback. It is used for reduced-motion preferences, small screens, and data-saver connections. The video file is local, so the homepage has no third-party media dependency.
 
 [WallpaperSafari's Vintage Aesthetic Landscape collection](https://wallpapersafari.com/vintage-aesthetic-landscape-wallpapers/) was used only as visual direction. No WallpaperSafari-hosted image is integrated into the project because its [copyright policy](https://wallpapersafari.com/page/copyright-policy/) requires permission from the relevant creator and its [terms of service](https://wallpapersafari.com/page/terms-of-service/) prohibit integrating hosted files without express written permission.
 
 ## Body & Recovery
 
-The Body & Recovery panel provides an interactive front-and-back anatomy selector with more than 30 detailed regions, including:
+The check-in is a **guided three-step flow** — *Area → Symptoms → Notes* — with a visible progress indicator, so a single long form no longer asks for everything at once. Step 3 is explicitly optional.
+
+Step 1 uses a **single-canvas interactive body map**. One anatomically proportioned illustration is clipped to the active view, and a Front/Back switch swaps between them so only one figure is ever on screen. Zoom in/out/reset controls with a live percentage readout make small regions (Achilles, arches, SI joint) tappable on a phone. A collapsible "Or browse all body regions" list provides a text fallback for every region, so selection never depends on hitting a target in an SVG.
+
+The selector covers more than 30 detailed regions, including:
 
 - head, jaw, neck, collarbones, shoulders, arms, elbows, forearms, wrists, and hands
 - chest, ribs, abdomen, upper/mid/lower back, sacrum, and SI joint
@@ -84,6 +90,14 @@ The Body & Recovery panel provides an interactive front-and-back anatomy selecto
 - kneecap, inner/outer knee, shins, calves, Achilles, ankles, heels, feet, arches, and toes
 
 Users can select multiple regions, specify left/right/both/center, add an exact-location note, rate pain from 1-10, describe sensations and triggers, and save the check-in. Recent distance, elevation, pace, and training-load changes are added as context.
+
+### Measured recovery signals
+
+When a wearable is connected, the panel shows a **Sleep & heart** card with objective signals — sleep duration, resting heart rate, and HRV — alongside the subjective check-in. These inform the picture but never override how the runner reports feeling.
+
+The same signals now reach the **readiness card** on the daily companion. `training_load.calculate()` previously hardcoded sleep, HRV, and resting HR to `None`, so the card reported them missing even when real Google Health data existed; it now reads the connected values.
+
+Because the data arrives through the Google Health API rather than Fitbit's own service, the attribution tag reads **"via Google Health"**, with the underlying recording device named in the tooltip. This avoids implying a direct Fitbit API connection that no longer exists.
 
 ### Recovery safety
 
@@ -134,6 +148,14 @@ To enable it, set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`, default
 
 Data is sent to Google only when a runner actually uses Ask Gaman, and the key is
 read only on the server.
+
+## Performance
+
+Every dashboard page previously refetched all provider activity and retrained the workout model, which made navigation feel slow on a free-tier host. Three changes fixed it:
+
+- **Short-lived in-process caches.** Activity results are cached for 120 seconds and recovery metrics for 180 seconds, keyed on which providers are configured plus the current local date, so the cache expires naturally at the day boundary. A manual sync from the connection center clears the activity cache immediately, so a fresh sync is never masked by a stale entry.
+- **Area-scoped context.** The pace chart, rule-based feedback, and seven-day workout suggestions — the expensive work, including the model fit — are computed only when the **Training** area is actually requested, instead of on every page.
+- **Deduplicated work.** Shoe mileage and saved training records are computed once per request and passed to the callers that need them, rather than recomputed per template variable.
 
 ## Technology
 
@@ -267,7 +289,7 @@ Render's free filesystem is ephemeral. Account, race, feedback, shoe, plan, reco
 
 ### Current data limitations
 
-The unified activity model currently includes date, source, distance, duration, average heart rate, average pace, and elevation gain. Split-level pace, cadence, HRV, resting heart rate, sleep, and detailed elevation streams are shown as unavailable until their source integrations provide them. Gaman does not fabricate these fields. Coros production authentication remains a roadmap item, and the current Coros client uses sample activities.
+The unified activity model currently includes date, source, distance, duration, average heart rate, average pace, and elevation gain. Sleep, resting heart rate, and HRV are available once a Google Health connection is authorized, and are shown as unavailable otherwise. Split-level pace, cadence, and detailed elevation streams remain unavailable until their source integrations provide them. Gaman does not fabricate these fields. Coros production authentication remains a roadmap item, and the current Coros client uses sample activities.
 
 ## Project status
 
