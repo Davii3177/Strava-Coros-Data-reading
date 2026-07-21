@@ -781,10 +781,12 @@ def _ask_gemini(question: str, history: list[dict], context: dict) -> str | None
     payload = {
         "system_instruction": {"parts": [{"text": ASK_SYSTEM_PROMPT}]},
         "contents": contents,
-        # gemini-3/2.5 flash are "thinking" models; disable thinking so the token
-        # budget goes to the (deliberately short) answer instead of hidden
-        # reasoning — keeps replies fast, cheap, concise, and never truncated.
-        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 600, "thinkingConfig": {"thinkingBudget": 0}},
+        # No thinkingConfig here: "gemini-flash-lite-latest" moved from a 2.5-era
+        # model (which accepted thinkingBudget: 0 to skip hidden reasoning) to
+        # gemini-3.5-flash-lite, which rejects that field with a 400 on every
+        # call. Omitting it works across model versions; flash-lite's own output
+        # cap plus our short, direct system prompt keeps replies brief anyway.
+        "generationConfig": {"temperature": 0.3, "maxOutputTokens": 600},
     }
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
